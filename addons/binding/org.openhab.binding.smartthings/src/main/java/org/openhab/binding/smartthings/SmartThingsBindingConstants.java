@@ -10,17 +10,17 @@ package org.openhab.binding.smartthings;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 /**
- * The {@link SmartThingsBinding} class defines common constants, which are 
+ * The {@link SmartThingsBinding} class defines common constants, which are
  * used across the whole binding.
- * 
+ *
  * @author quavarus - Initial contribution
  */
 public class SmartThingsBindingConstants {
 
     public static final String BINDING_ID = "smartthings";
-    
+
     // List of all Thing Type UIDs
-    public final static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public final static ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "smartthingsapi");
 
     // List of all Channel ids
     public final static String CHANNEL_1 = "channel1";

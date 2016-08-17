@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-description:config-descriptions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
+    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0
+        http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
+
+    <config-description uri="thing-type:smartthings:bridge">                         
+        <parameter name="clientId" type="text">
+            <label>Client ID</label>
+            <description>Client ID provided for the application you created on http://dev.netatmo.com/createapp</description>
+            <required>true</required>
+            <default>93c1c023-bb4c-4938-8ffb-f1a1c2d3f287</default>
+            <advanced>false</advanced>
+        </parameter>
+            
+        <parameter name="clientSecret" type="text">
+            <label>Client Secret</label>
+            <description>Client Secret provided for the application you created</description>
+            <required>true</required>
+            <default>dfd05756-b5eb-4d00-a1a6-ec45243a54ba</default>
+            <advanced>false</advanced>
+        </parameter>
+            
+        <parameter name="token" type="text">
+            <label>User Token</label>
+            <description>Your OAuth Access Token</description>
+            <required>false</required>
+            <advanced>false</advanced>
+        </parameter>        
+                                                               
+    </config-description>
+
+</config-description:config-descriptions>
