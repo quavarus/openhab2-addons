@@ -7,23 +7,15 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
-import org.openhab.binding.smartthings.client.ApiClient;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-//import io.swagger.client.ApiClient;
-//import io.swagger.client.api.StationApi;
-//import io.swagger.client.api.ThermostatApi;
-//import io.swagger.client.auth.OAuth;
-//import io.swagger.client.auth.OAuthFlow;
-//import io.swagger.client.model.NAUserAdministrative;
-//import io.swagger.client.model.NAUserResponse;
-//import retrofit.RestAdapter.LogLevel;
 
 /**
  * {@link SmartThingsBridgeHandler} is the handler for a SmartThings OpenHAB and connects it
@@ -36,9 +28,27 @@ import org.slf4j.LoggerFactory;
 public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private static Logger logger = LoggerFactory.getLogger(SmartThingsBridgeHandler.class);
     private SmartThingsBridgeConfiguration configuration;
-    private ApiClient apiClient;
-    // private StationApi stationApi = null;
-    // private ThermostatApi thermostatApi = null;
+
+    /** Default Redirect URL to which the user is redirected after the login */
+    private static final String DEFAULT_REDIRECT_URL = "http://www.openhab.org/oauth/smartthings";
+
+    private static final String LINE = "#########################################################################################";
+
+    private static final String OAUTH_ACCESS_TOKEN_ENDPOINT_URL = "https://graph.api.smartthings.com/oauth/token";
+
+    private static final String OAUTH_AUTHORIZE_ENDPOINT_URL = "https://graph.api.smartthings.com/oauth/authorize";
+
+    private static final String OAUTH_RESPONSE_TYPE = "code";
+    private static final String OAUTH_SCOPE = "app";
+
+    static final String DEFAULT_ACCOUNT_ID = "DEFAULT_ACCOUNT_ID";
+
+    /** Redirect URL to which the user is redirected after the login */
+    private String redirectUrl = DEFAULT_REDIRECT_URL;
+    private String authorizeUrl = OAUTH_AUTHORIZE_ENDPOINT_URL;
+    private String tokenUrl = OAUTH_ACCESS_TOKEN_ENDPOINT_URL;
+    private String responseType = OAUTH_RESPONSE_TYPE;
+    private String scope = OAUTH_SCOPE;
 
     public SmartThingsBridgeHandler(Bridge bridge) {
         super(bridge);
@@ -50,7 +60,19 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
 
         configuration = getConfigAs(SmartThingsBridgeConfiguration.class);
         if (configuration.token == null || configuration.token.trim().length() == 0) {
+            requestAuthentication();
+            throw new RuntimeException("Authentication Required. See Console for instructions.");
+        }
+    }
 
+    private void requestAuthentication() {
+        try {
+            OAuthClientRequest request = OAuthClientRequest.authorizationLocation(authorizeUrl).setClientId(consumerKey)
+                    .setRedirectURI(redirectUrl).setScope(scope).setResponseType(responseType).buildQueryMessage();
+            printSetupInstructions(request.getLocationUri());
+        } catch (OAuthSystemException ex) {
+            logger.error(ex.getMessage(), ex);
+            printAuthenticationFailed(ex);
         }
     }
 
@@ -125,5 +147,34 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     // }
     // return thermostatApi;
     // }
+
+    private void printSetupInstructions(String url) {
+        logger.info(LINE);
+        logger.info("# SmartThings Binding Setup: ");
+        logger.info("# 1. Open URL '" + url + "' in your web browser");
+        logger.info("# 2. Login, choose your SmartThings to allow openHAB access to.");
+        logger.info("# 3. Execute 'smartThings:finishAuthentication \"<CODE>\"' on OSGi console");
+        logger.info(LINE);
+    }
+
+    private void printAuthenticationInfo(String accountId) {
+        logger.info(LINE);
+        logger.info("# SmartThings Binding needs authentication of Account '{}'.", accountId);
+        logger.info("# Execute 'withings:startAuthentication' \"<accountId>\" on OSGi console.");
+        logger.info(LINE);
+    }
+
+    private void printAuthenticationSuccessful() {
+        logger.info(LINE);
+        logger.info("# SmartThings authentication SUCCEEDED. Binding is now ready to work.");
+        logger.info(LINE);
+    }
+
+    private void printAuthenticationFailed(Exception ex) {
+        logger.info(LINE);
+        logger.info("# SmartThings authentication FAILED: " + ex.getMessage());
+        logger.info("# Try to restart authentication by executing 'withings:startAuthentication'");
+        logger.info(LINE);
+    }
 
 }
