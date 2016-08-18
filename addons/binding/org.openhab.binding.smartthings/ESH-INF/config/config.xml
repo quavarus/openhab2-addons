@@ -5,28 +5,51 @@
     xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0
         http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
 
-    <config-description uri="thing-type:smartthings:bridge">                         
-        <parameter name="clientId" type="text">
+    <config-description uri="thing-type:smartthings:bridge"> 
+    <parameter-group name="Authentication">
+        <label>Authentication</label>
+        <description>Blah blah blah</description>
+        <advanced>false</advanced>
+    </parameter-group>  
+    <parameter-group name="advanced">
+        <label>Advanced</label>
+        <description>Advanced Settings</description>
+        <advanced>true</advanced>
+    </parameter-group>                      
+        <parameter name="clientId" type="text" groupName="advanced">
             <label>Client ID</label>
             <description>Client ID provided for the application you created on http://dev.netatmo.com/createapp</description>
             <required>true</required>
             <default>93c1c023-bb4c-4938-8ffb-f1a1c2d3f287</default>
-            <advanced>false</advanced>
+            <advanced>true</advanced>
         </parameter>
             
-        <parameter name="clientSecret" type="text">
+        <parameter name="clientSecret" type="text" groupName="advanced">
             <label>Client Secret</label>
             <description>Client Secret provided for the application you created</description>
             <required>true</required>
             <default>dfd05756-b5eb-4d00-a1a6-ec45243a54ba</default>
-            <advanced>false</advanced>
+            <advanced>true</advanced>
         </parameter>
             
-        <parameter name="token" type="text">
+        <parameter name="authUrl" type="text" groupName="Authentication" readOnly="true" >
+	       <label>URL</label>
+	       <description>Copy the following url into your browser. Authorize your things and then enter the Temporary Auth Code below.</description>
+	       <required>false</required>
+	       <advanced>false</advanced>
+        </parameter>
+        <parameter name="code" type="text" groupName="Authentication">
+            <label>Temporary Auth Code</label>
+            <description>Temporary Auth Code</description>
+            <required>false</required>
+            <advanced>false</advanced>
+        </parameter>    
+            
+        <parameter name="token" type="text" groupName="Authentication">
             <label>User Token</label>
             <description>Your OAuth Access Token</description>
             <required>false</required>
-            <advanced>false</advanced>
+            <advanced>true</advanced>
         </parameter>        
                                                                
     </config-description>

@@ -7,6 +7,11 @@
  */
 package org.openhab.binding.smartthings;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 
 /**
@@ -21,8 +26,24 @@ public class SmartThingsBindingConstants {
 
     // List of all Thing Type UIDs
     public final static ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "smartthingsapi");
+    public final static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
 
     // List of all Channel ids
     public final static String CHANNEL_1 = "channel1";
+
+    // List of all adressable things in OH = SUPPORTED_DEVICE_THING_TYPES_UIDS + the virtual bridge
+    public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
+            .unmodifiableSet(new HashSet<ThingTypeUID>() {
+                {
+                    addAll(Arrays.asList(THING_TYPE_BRIDGE, THING_TYPE_SAMPLE));
+                }
+            });
+
+    public final static Set<ThingTypeUID> SUPPORTED_DEVICE_THING_TYPES_UIDS = Collections
+            .unmodifiableSet(new HashSet<ThingTypeUID>() {
+                {
+                    // addAll(Arrays.asList(THING_TYPE_BRIDGE, THING_TYPE_SAMPLE));
+                }
+            });
 
 }

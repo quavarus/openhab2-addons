@@ -7,10 +7,17 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
+import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
@@ -59,20 +66,70 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         logger.debug("Initializing SmartThings bridge handler.");
 
         configuration = getConfigAs(SmartThingsBridgeConfiguration.class);
+
+        String url = getAuthenticationUrl();
+        Configuration config = getConfig();
+        config.put("authUrl", url);
+        updateConfiguration(config);
+
         if (configuration.token == null || configuration.token.trim().length() == 0) {
-            requestAuthentication();
-            throw new RuntimeException("Authentication Required. See Console for instructions.");
+            updateStatus(ThingStatus.OFFLINE);
+            if (configuration.code != null && configuration.code.trim().length() > 0) {
+                requestAccessToken();
+            } else {
+                printSetupInstructions(url);
+            }
+            return;
         }
+        updateStatus(ThingStatus.ONLINE);
     }
 
-    private void requestAuthentication() {
+    private String getAuthenticationUrl() {
         try {
-            OAuthClientRequest request = OAuthClientRequest.authorizationLocation(authorizeUrl).setClientId(consumerKey)
-                    .setRedirectURI(redirectUrl).setScope(scope).setResponseType(responseType).buildQueryMessage();
-            printSetupInstructions(request.getLocationUri());
+            OAuthClientRequest request = OAuthClientRequest.authorizationLocation(authorizeUrl)
+                    .setClientId(configuration.clientId).setRedirectURI(redirectUrl).setScope(scope)
+                    .setResponseType(responseType).buildQueryMessage();
+            return request.getLocationUri();
+        } catch (OAuthSystemException ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+        return null;
+    }
+
+    private void requestAccessToken() {
+        OAuthClientRequest request = null;
+        try {
+            request = OAuthClientRequest.tokenLocation(tokenUrl).setGrantType(GrantType.AUTHORIZATION_CODE)
+                    .setClientId(configuration.clientId).setClientSecret(configuration.clientSecret)
+                    .setRedirectURI(redirectUrl).setCode(configuration.code).buildQueryMessage();
+
         } catch (OAuthSystemException ex) {
             logger.error(ex.getMessage(), ex);
             printAuthenticationFailed(ex);
+            return;
+        }
+
+        // create OAuth client that uses custom http client under the hood
+        OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+
+        OAuthJSONAccessTokenResponse oAuthResponse;
+        try {
+            oAuthResponse = oAuthClient.accessToken(request);
+            String accessToken = oAuthResponse.getAccessToken();
+            Configuration config = getConfig();
+            config.put("token", accessToken);
+            config.remove("code");
+            updateConfiguration(config);
+            updateStatus(ThingStatus.ONLINE);
+        } catch (OAuthSystemException | OAuthProblemException e) {
+            logger.error(e.getMessage(), e);
+            printAuthenticationFailed(e);
+            Configuration config = getConfig();
+            config.remove("code");
+            updateConfiguration(config);
+            updateStatus(ThingStatus.OFFLINE);
+            // updateThing(getThing());
+            // return;
         }
     }
 
@@ -115,19 +172,19 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     // }
     // }
 
-    private String getApiScope() {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        // if (configuration.readStation) {
-        // stringBuilder.append("read_station ");
-        // }
-        //
-        // if (configuration.readThermostat) {
-        // stringBuilder.append("read_thermostat write_thermostat ");
-        // }
-
-        return stringBuilder.toString().trim();
-    }
+    // private String getApiScope() {
+    // StringBuilder stringBuilder = new StringBuilder();
+    //
+    // // if (configuration.readStation) {
+    // // stringBuilder.append("read_station ");
+    // // }
+    // //
+    // // if (configuration.readThermostat) {
+    // // stringBuilder.append("read_thermostat write_thermostat ");
+    // // }
+    //
+    // return stringBuilder.toString().trim();
+    // }
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {

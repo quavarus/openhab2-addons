@@ -16,5 +16,6 @@ package org.openhab.binding.smartthings.config;
 public class SmartThingsBridgeConfiguration {
     public String clientId;
     public String clientSecret;
+    public String code;
     public String token;
 }

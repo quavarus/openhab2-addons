@@ -31,3 +31,5 @@ Import-Package:
 Service-Component: OSGI-INF/*.xml
 Export-Package: org.openhab.binding.smartthings,
  org.openhab.binding.smartthings.handler
+Require-Bundle: org.eclipse.smarthome.config.discovery,
+ org.eclipse.osgi
