@@ -7,6 +7,9 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -20,9 +23,20 @@ import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.smartthings.client.SmartAppApi;
+import org.openhab.binding.smartthings.client.SmartThingsAPI;
+import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.client.model.Endpoint;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * {@link SmartThingsBridgeHandler} is the handler for a SmartThings OpenHAB and connects it
@@ -57,6 +71,8 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private String responseType = OAUTH_RESPONSE_TYPE;
     private String scope = OAUTH_SCOPE;
 
+    OkHttpClient httpClient;
+
     public SmartThingsBridgeHandler(Bridge bridge) {
         super(bridge);
     }
@@ -81,6 +97,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
             }
             return;
         }
+        initHttp();
         updateStatus(ThingStatus.ONLINE);
     }
 
@@ -120,6 +137,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
             config.put("token", accessToken);
             config.remove("code");
             updateConfiguration(config);
+            initHttp();
             updateStatus(ThingStatus.ONLINE);
         } catch (OAuthSystemException | OAuthProblemException e) {
             logger.error(e.getMessage(), e);
@@ -131,6 +149,55 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
             // updateThing(getThing());
             // return;
         }
+    }
+
+    private void initHttp() {
+        httpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+            @Override
+            public okhttp3.Response intercept(Chain chain) throws IOException {
+                okhttp3.Request request = chain.request().newBuilder()
+                        .addHeader("Authorization", "Bearer " + configuration.token).build();
+                return chain.proceed(request);
+            }
+        }).build();
+    }
+
+    public SmartThingsAPI getSmartThingsApi() {
+        String endpointUrl = "https://graph.api.smartthings.com/api/";
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(endpointUrl).client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+        SmartThingsAPI service = retrofit.create(SmartThingsAPI.class);
+        return service;
+    }
+
+    public <T> T executeCall(Call<T> call) {
+        try {
+            Response<T> response = call.execute();
+            if (response.isSuccessful()) {
+                T value = response.body();
+                return value;
+            } else {
+                throw new RuntimeException(response.errorBody().string());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing api call.", e);
+        }
+    }
+
+    public SmartAppApi getSmartAppApi() {
+        SmartThingsAPI api = getSmartThingsApi();
+        List<Endpoint> endpoints = executeCall(api.getEndpoints(configuration.clientId));
+        if (endpoints != null && endpoints.size() > 0) {
+            String baseUrl = endpoints.get(0).getUri().toString() + "/";
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(baseUrl).client(httpClient)
+                    .addConverterFactory(GsonConverterFactory.create()).build();
+            SmartAppApi service = retrofit.create(SmartAppApi.class);
+            return service;
+        } else {
+            throw new RuntimeException("No Endpoints Authorized");
+        }
+
     }
 
     // private void updateChannels() {
@@ -232,6 +299,14 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         logger.info("# SmartThings authentication FAILED: " + ex.getMessage());
         logger.info("# Try to restart authentication by executing 'withings:startAuthentication'");
         logger.info(LINE);
+    }
+
+    public Device getDeviceById(String deviceId) {
+        return executeCall(getSmartAppApi().getDevice(deviceId));
+    }
+
+    public Device runDeviceCommand(String deviceId, String command, String... arugments) {
+        return executeCall(getSmartAppApi().runDeviceCommand(deviceId, command));
     }
 
 }

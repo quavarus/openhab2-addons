@@ -45,7 +45,7 @@ public class SmartThingsHandlerFactory extends BaseThingHandlerFactory {
             SmartThingsBridgeHandler bridgeHandler = new SmartThingsBridgeHandler((Bridge) thing);
             registerDeviceDiscoveryService(bridgeHandler);
             return bridgeHandler;
-        } else if (thingTypeUID.equals(THING_TYPE_SAMPLE)) {
+        } else if (thingTypeUID.equals(THING_TYPE_SWITCH)) {
             return new SmartThingsHandler(thing);
         }
 
@@ -56,6 +56,7 @@ public class SmartThingsHandlerFactory extends BaseThingHandlerFactory {
         SmartThingsModuleDiscoveryService discoveryService = new SmartThingsModuleDiscoveryService(bridge);
         discoveryServiceReg = bundleContext.registerService(DiscoveryService.class.getName(), discoveryService,
                 new Hashtable<String, Object>());
+        discoveryServiceReg.toString();
     }
 
     @Override

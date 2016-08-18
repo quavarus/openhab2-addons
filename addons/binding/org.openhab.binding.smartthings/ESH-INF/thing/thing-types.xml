@@ -15,16 +15,29 @@
         <config-description-ref uri="thing-type:smartthings:bridge" />
                 
     </bridge-type>
+    
+    <thing-type id="switch">
+        <supported-bridge-type-refs>
+            <bridge-type-ref id="smartthingsapi" />
+        </supported-bridge-type-refs>
 
-    <!-- Sample Thing Type -->
-    <thing-type id="sample">
-        <label>SmartThings Binding Thing</label>
-        <description>Sample thing for SmartThings Binding</description>
+        <label>SmartThings Switch</label>
+        <description>An On/Off Switch</description>
 
         <channels>
-            <channel id="channel1" typeId="sample-channel"/>
+            <channel id="switch" typeId="switch" />
+            <channel id="alert" typeId="alert" />
         </channels>
+
+        <config-description>
+            <parameter name="smartThingId" type="text">
+                <label>Device ID</label>
+                <description>SmartThings Device ID</description>
+                <required>true</required>
+            </parameter>
+        </config-description>
     </thing-type>
+    
 
     <!-- Sample Channel Type -->
     <channel-type id="sample-channel">

@@ -8,9 +8,20 @@
  */
 package org.openhab.binding.smartthings.discovery;
 
-import static org.openhab.binding.smartthings.SmartThingsBindingConstants.SUPPORTED_DEVICE_THING_TYPES_UIDS;
+import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
+import org.eclipse.smarthome.config.discovery.DiscoveryResult;
+import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
+import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.eclipse.smarthome.core.thing.ThingUID;
+import org.openhab.binding.smartthings.client.SmartAppApi;
+import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.handler.SmartThingsBridgeHandler;
 
 /**
@@ -29,82 +40,54 @@ public class SmartThingsModuleDiscoveryService extends AbstractDiscoveryService 
         this.bridgeHandler = bridgeHandler;
     }
 
-    // private void screenDevicesAndModules(NADeviceListResponse deviceList) {
-    // if (deviceList != null) {
-    // List<NADevice> devices = deviceList.getBody().getDevices();
-    // if (devices != null) {
-    // for (NADevice naDevice : devices) {
-    // onDeviceAddedInternal(naDevice);
-    // List<NAModule> modules = deviceList.getBody().getModules();
-    // if (modules != null) {
-    // for (NAModule naModule : modules) {
-    // onModuleAddedInternal(naModule);
-    // }
-    // }
-    // }
-    // }
-    // }
-    // }
-
     @Override
     public void startScan() {
-        // NADeviceListResponse deviceList;
-        //
-        // StationApi stationApi = netatmoBridgeHandler.getStationApi();
-        // if (stationApi != null) {
-        // deviceList = stationApi.devicelist("app_station", null, false);
-        // screenDevicesAndModules(deviceList);
-        // }
-        //
-        // ThermostatApi thermostatApi = netatmoBridgeHandler.getThermostatApi();
-        // if (thermostatApi != null) {
-        // deviceList = thermostatApi.devicelist("app_thermostat", null, false);
-        // screenDevicesAndModules(deviceList);
-        // }
+        if (bridgeHandler.getThing().getStatus().equals(ThingStatus.ONLINE)) {
+            // SmartThingsBridgeConfiguration config = bridgeHandler.getThing().getConfiguration()
+            // .as(SmartThingsBridgeConfiguration.class);
+
+            SmartAppApi api = bridgeHandler.getSmartAppApi();
+            List<Device> devices = bridgeHandler.executeCall(api.getDevices());
+            for (Device device : devices) {
+                onDeviceAddedInternal(device);
+            }
+
+        }
 
         stopScan();
     }
 
-    // private void onDeviceAddedInternal(NADevice naDevice) {
-    // ThingUID thingUID = findThingUID(naDevice.getType(), naDevice.getId());
-    // Map<String, Object> properties = new HashMap<>(1);
-    //
-    // properties.put(EQUIPMENT_ID, naDevice.getId());
-    //
-    // String name = naDevice.getModuleName();
-    //
-    // addDiscoveredThing(thingUID, properties, (name == null) ? naDevice.getStationName() : name);
-    // }
-    //
-    // private void onModuleAddedInternal(NAModule naModule) {
-    // ThingUID thingUID = findThingUID(naModule.getType(), naModule.getId());
-    // Map<String, Object> properties = new HashMap<>(2);
-    //
-    // properties.put(EQUIPMENT_ID, naModule.getId());
-    // properties.put(PARENT_ID, naModule.getMainDevice());
-    //
-    // addDiscoveredThing(thingUID, properties, naModule.getModuleName());
-    // }
-    //
-    // private void addDiscoveredThing(ThingUID thingUID, Map<String, Object> properties, String displayLabel) {
-    // DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withProperties(properties)
-    // .withBridge(netatmoBridgeHandler.getThing().getUID()).withLabel(displayLabel).build();
-    //
-    // thingDiscovered(discoveryResult);
-    // }
-    //
-    // private ThingUID findThingUID(String thingType, String thingId) throws IllegalArgumentException {
-    // for (ThingTypeUID supportedThingTypeUID : getSupportedThingTypes()) {
-    // String uid = supportedThingTypeUID.getId();
-    //
-    // if (uid.equalsIgnoreCase(thingType)) {
-    //
-    // return new ThingUID(supportedThingTypeUID, netatmoBridgeHandler.getThing().getUID(),
-    // thingId.replaceAll("[^a-zA-Z0-9_]", ""));
-    // }
-    // }
-    //
-    // throw new IllegalArgumentException("Unsupported device type discovered :" + thingType);
-    // }
+    private void onDeviceAddedInternal(Device device) {
+        ThingUID thingUID = findThingUID(device);
+        Map<String, Object> properties = new HashMap<>(1);
+
+        properties.put(SMARTTHING_ID, device.getId());
+
+        String name = device.getDisplayName();
+
+        addDiscoveredThing(thingUID, properties, (name == null) ? device.getName() : name);
+    }
+
+    private void addDiscoveredThing(ThingUID thingUID, Map<String, Object> properties, String displayLabel) {
+        DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withProperties(properties)
+                .withBridge(bridgeHandler.getThing().getUID()).withLabel(displayLabel).build();
+
+        thingDiscovered(discoveryResult);
+    }
+
+    private ThingUID findThingUID(Device device) throws IllegalArgumentException {
+        String thingType = "switch";
+        for (ThingTypeUID supportedThingTypeUID : getSupportedThingTypes()) {
+            String uid = supportedThingTypeUID.getId();
+
+            if (uid.equalsIgnoreCase(thingType)) {
+
+                return new ThingUID(supportedThingTypeUID, bridgeHandler.getThing().getUID(),
+                        device.getId().replaceAll("[^a-zA-Z0-9_]", ""));
+            }
+        }
+
+        throw new IllegalArgumentException("Unsupported device type discovered :" + thingType);
+    }
 
 }

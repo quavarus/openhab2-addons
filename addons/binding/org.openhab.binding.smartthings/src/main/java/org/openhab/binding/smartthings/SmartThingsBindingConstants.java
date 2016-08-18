@@ -24,25 +24,29 @@ public class SmartThingsBindingConstants {
 
     public static final String BINDING_ID = "smartthings";
 
+    public static final String SMARTTHING_ID = "smartThingId";
+
     // List of all Thing Type UIDs
     public final static ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "smartthingsapi");
-    public final static ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public final static ThingTypeUID THING_TYPE_SWITCH = new ThingTypeUID(BINDING_ID, "switch");
 
     // List of all Channel ids
     public final static String CHANNEL_1 = "channel1";
+    public final static String CHANNEL_SWITCH = "switch";
+    public final static String CHANNEL_ALERT = "alert";
 
-    // List of all adressable things in OH = SUPPORTED_DEVICE_THING_TYPES_UIDS + the virtual bridge
+    // List of all addressable things in OH = SUPPORTED_DEVICE_THING_TYPES_UIDS + the virtual bridge
     public final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Collections
             .unmodifiableSet(new HashSet<ThingTypeUID>() {
                 {
-                    addAll(Arrays.asList(THING_TYPE_BRIDGE, THING_TYPE_SAMPLE));
+                    addAll(Arrays.asList(THING_TYPE_BRIDGE, THING_TYPE_SWITCH));
                 }
             });
 
     public final static Set<ThingTypeUID> SUPPORTED_DEVICE_THING_TYPES_UIDS = Collections
             .unmodifiableSet(new HashSet<ThingTypeUID>() {
                 {
-                    // addAll(Arrays.asList(THING_TYPE_BRIDGE, THING_TYPE_SAMPLE));
+                    addAll(Arrays.asList(THING_TYPE_SWITCH));
                 }
             });
 
