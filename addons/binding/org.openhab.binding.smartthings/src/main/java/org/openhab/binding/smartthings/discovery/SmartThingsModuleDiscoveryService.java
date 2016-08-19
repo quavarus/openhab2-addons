@@ -53,7 +53,7 @@ public class SmartThingsModuleDiscoveryService extends AbstractDiscoveryService 
             }
 
         }
-
+        bridgeHandler.updateDevices();
         stopScan();
     }
 
@@ -65,12 +65,9 @@ public class SmartThingsModuleDiscoveryService extends AbstractDiscoveryService 
 
         String name = device.getDisplayName();
 
-        addDiscoveredThing(thingUID, properties, (name == null) ? device.getName() : name);
-    }
-
-    private void addDiscoveredThing(ThingUID thingUID, Map<String, Object> properties, String displayLabel) {
         DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withProperties(properties)
-                .withBridge(bridgeHandler.getThing().getUID()).withLabel(displayLabel).build();
+                .withBridge(bridgeHandler.getThing().getUID()).withLabel((name == null) ? device.getName() : name)
+                .build();
 
         thingDiscovered(discoveryResult);
     }

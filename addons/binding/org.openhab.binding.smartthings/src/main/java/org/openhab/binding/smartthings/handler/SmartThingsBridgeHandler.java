@@ -7,8 +7,16 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
+
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
@@ -20,6 +28,7 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
+import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
@@ -63,6 +72,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private static final String OAUTH_SCOPE = "app";
 
     static final String DEFAULT_ACCOUNT_ID = "DEFAULT_ACCOUNT_ID";
+    private static final int DEFAULT_POLLING_INTERVAL = 10; // in seconds
 
     /** Redirect URL to which the user is redirected after the login */
     private String redirectUrl = DEFAULT_REDIRECT_URL;
@@ -72,6 +82,15 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private String scope = OAUTH_SCOPE;
 
     OkHttpClient httpClient;
+    private ScheduledFuture<?> pollingJob;
+
+    private Runnable pollingRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            updateDevices();
+        }
+    };
 
     public SmartThingsBridgeHandler(Bridge bridge) {
         super(bridge);
@@ -99,6 +118,15 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         }
         initHttp();
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    private Map<String, Thing> getThingMap() {
+        Map<String, Thing> returnValue = new HashMap<>();
+        List<Thing> childThings = getThing().getThings();
+        for (Thing thing : childThings) {
+            returnValue.put(thing.getConfiguration().get(SMARTTHING_ID).toString(), thing);
+        }
+        return returnValue;
     }
 
     private String getAuthenticationUrl() {
@@ -200,77 +228,31 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
 
     }
 
-    // private void updateChannels() {
-    // NAUserResponse user = null;
-    //
-    // getStationApi();
-    // if (stationApi != null) {
-    // user = stationApi.getuser();
-    // } else {
-    // getThermostatApi();
-    // if (thermostatApi != null) {
-    // user = thermostatApi.getuser();
-    // }
-    // }
-    //
-    // if (user != null) {
-    // NAUserAdministrative admin = user.getBody().getAdministrative();
-    // for (Channel channel : getThing().getChannels()) {
-    // String chanelId = channel.getUID().getId();
-    // switch (chanelId) {
-    // case CHANNEL_UNIT: {
-    // updateState(channel.getUID(), new DecimalType(admin.getUnit()));
-    // break;
-    // }
-    // case CHANNEL_WIND_UNIT: {
-    // updateState(channel.getUID(), new DecimalType(admin.getWindunit()));
-    // break;
-    // }
-    // case CHANNEL_PRESSURE_UNIT: {
-    // updateState(channel.getUID(), new DecimalType(admin.getPressureunit()));
-    // break;
-    // }
-    // }
-    // }
-    // updateStatus(ThingStatus.ONLINE);
-    // } else {
-    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE,
-    // "Unable to initialize Netatmo API connection (check credentials)");
-    // }
-    // }
-
-    // private String getApiScope() {
-    // StringBuilder stringBuilder = new StringBuilder();
-    //
-    // // if (configuration.readStation) {
-    // // stringBuilder.append("read_station ");
-    // // }
-    // //
-    // // if (configuration.readThermostat) {
-    // // stringBuilder.append("read_thermostat write_thermostat ");
-    // // }
-    //
-    // return stringBuilder.toString().trim();
-    // }
-
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.warn("This Bridge is read-only and does not handle commands");
     }
 
-    // public StationApi getStationApi() {
-    // if (configuration.readStation && stationApi == null) {
-    // stationApi = apiClient.createService(StationApi.class);
-    // }
-    // return stationApi;
-    // }
-    //
-    // public ThermostatApi getThermostatApi() {
-    // if (configuration.readThermostat && thermostatApi == null) {
-    // thermostatApi = apiClient.createService(ThermostatApi.class);
-    // }
-    // return thermostatApi;
-    // }
+    private synchronized void onUpdate() {
+        if (httpClient != null) {
+            if (pollingJob == null || pollingJob.isCancelled()) {
+                int pollingInterval = DEFAULT_POLLING_INTERVAL;
+                try {
+                    Object pollingIntervalConfig = getConfig().get(POLLING_INTERVAL);
+                    if (pollingIntervalConfig != null) {
+                        pollingInterval = ((BigDecimal) pollingIntervalConfig).intValue();
+                    } else {
+                        logger.info("Polling interval not configured for this hue bridge. Using default value: {}s",
+                                pollingInterval);
+                    }
+                } catch (NumberFormatException ex) {
+                    logger.info("Wrong configuration value for polling interval. Using default value: {}s",
+                            pollingInterval);
+                }
+                pollingJob = scheduler.scheduleAtFixedRate(pollingRunnable, 1, pollingInterval, TimeUnit.SECONDS);
+            }
+        }
+    }
 
     private void printSetupInstructions(String url) {
         logger.info(LINE);
@@ -308,5 +290,107 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     public Device runDeviceCommand(String deviceId, String command, String... arugments) {
         return executeCall(getSmartAppApi().runDeviceCommand(deviceId, command));
     }
+
+    public List<Device> getDevices() {
+        return executeCall(getSmartAppApi().getDevices());
+    }
+
+    public void updateDevices() {
+        try {
+            // try {
+            // FullConfig fullConfig = bridge.getFullConfig();
+            // if (!lastBridgeConnectionState) {
+            // lastBridgeConnectionState = tryResumeBridgeConnection();
+            // }
+            // if (lastBridgeConnectionState) {
+            // Map<String, FullLight> lastLightStateCopy = new HashMap<>(lastLightStates);
+            Map<String, Thing> thingMap = getThingMap();
+            List<String> updatedThings = new ArrayList<>();
+            for (final Device device : getDevices()) {
+                final String deviceId = device.getId();
+                if (thingMap.containsKey(deviceId)) {
+                    updatedThings.add(deviceId);
+                    Thing updateThing = thingMap.get(deviceId);
+                    SmartThingsHandler updateHandler = (SmartThingsHandler) updateThing.getHandler();
+                    updateHandler.refreshFromDevice(device);
+                    // if (!isEqual(lastFullLightState, device.getState())) {
+                    // logger.debug("Status update for Hue light {} detected.", deviceId);
+                    // notifyLightStatusListeners(device, LIGHT_STATE_CHANGED);
+                    // }
+                }
+                // else {
+                // lastLightStates.put(deviceId, device);
+                // logger.debug("Hue light {} added.", deviceId);
+                // notifyLightStatusListeners(device, LIGHT_STATE_ADDED);
+                // }
+            }
+            // // Check for removed lights
+            // for (Entry<String, FullLight> fullLightEntry : lastLightStateCopy.entrySet()) {
+            // lastLightStates.remove(fullLightEntry.getKey());
+            // logger.debug("Hue light {} removed.", fullLightEntry.getKey());
+            // for (LightStatusListener lightStatusListener : lightStatusListeners) {
+            // try {
+            // lightStatusListener.onLightRemoved(bridge, fullLightEntry.getValue());
+            // } catch (Exception e) {
+            // logger.error("An exception occurred while calling the BridgeHeartbeatListener", e);
+            // }
+            // }
+            // }
+            //
+            // final Config config = fullConfig.getConfig();
+            // if (config != null) {
+            // Map<String, String> properties = editProperties();
+            // properties.put(Thing.PROPERTY_SERIAL_NUMBER, config.getMACAddress());
+            // properties.put(Thing.PROPERTY_FIRMWARE_VERSION, config.getSoftwareVersion());
+            // updateProperties(properties);
+            // }
+            // }
+            // } catch (UnauthorizedException | IllegalStateException e) {
+            // if (isReachable(bridge.getIPAddress())) {
+            // lastBridgeConnectionState = false;
+            // onNotAuthenticated(bridge);
+            // } else {
+            // if (lastBridgeConnectionState || thing.getStatus() == ThingStatus.INITIALIZING) {
+            // lastBridgeConnectionState = false;
+            // onConnectionLost(bridge);
+            // }
+            // }
+            // } catch (Exception e) {
+            // if (bridge != null) {
+            // if (lastBridgeConnectionState) {
+            // logger.debug("Connection to Hue Bridge {} lost.", bridge.getIPAddress());
+            // lastBridgeConnectionState = false;
+            // onConnectionLost(bridge);
+            // }
+            // }
+            // }
+        } catch (Throwable t) {
+            logger.error("An unexpected error occurred: {}", t.getMessage(), t);
+        }
+    }
+
+    // private boolean isReachable(String ipAddress) {
+    // try {
+    // // note that InetAddress.isReachable is unreliable, see
+    // //
+    // http: //
+    // stackoverflow.com/questions/9922543/why-does-inetaddress-isreachable-return-false-when-i-can-ping-the-ip-address
+    // // That's why we do an HTTP access instead
+    //
+    // // If there is no connection, this line will fail
+    // bridge.authenticate("invalid");
+    // } catch (IOException e) {
+    // return false;
+    // } catch (ApiException e) {
+    // if (e.getMessage().contains("SocketTimeout") || e.getMessage().contains("ConnectException")
+    // || e.getMessage().contains("SocketException")) {
+    // return false;
+    // } else {
+    // // this seems to be only an authentication issue
+    // return true;
+    // }
+    // }
+    // return true;
+    // }
 
 }

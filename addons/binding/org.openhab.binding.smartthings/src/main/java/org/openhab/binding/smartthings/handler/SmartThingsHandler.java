@@ -11,6 +11,7 @@ import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
 
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Bridge;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
@@ -87,6 +88,10 @@ public class SmartThingsHandler extends BaseThingHandler {
             // updateProperty(Thing.PROPERTY_VENDOR, vendor);
             // }
             // isOsramPar16 = OSRAM_PAR16_50_TW_MODEL_ID.equals(modelId);
+            SmartThingsBridgeHandler bridgeHandler = (SmartThingsBridgeHandler) getBridge().getHandler();
+            String deviceId = thing.getConfiguration().get(SMARTTHING_ID).toString();
+            Device device = bridgeHandler.getDeviceById(deviceId);
+            refreshFromDevice(device);
             propertiesInitializedSuccessfully = true;
         }
     }
@@ -135,7 +140,7 @@ public class SmartThingsHandler extends BaseThingHandler {
         switch (channelUID.getId()) {
             case CHANNEL_SWITCH:
                 if (command instanceof OnOffType) {
-                    lightState = ((OnOffType) command).name();
+                    lightState = ((OnOffType) command).name().toLowerCase();
                 }
                 break;
             // case CHANNEL_ALERT:
@@ -159,6 +164,12 @@ public class SmartThingsHandler extends BaseThingHandler {
         } else {
             logger.warn("Command send to an unknown channel id: " + channelUID);
         }
+    }
+
+    public void refreshFromDevice(Device device) {
+        Channel channel = thing.getChannel("switch");
+        updateState(channel.getUID(),
+                OnOffType.valueOf(device.getCurrentValueMap().get("switch").getValue().toString().toUpperCase()));
     }
 
 }

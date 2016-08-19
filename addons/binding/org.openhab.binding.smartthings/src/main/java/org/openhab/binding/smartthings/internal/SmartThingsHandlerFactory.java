@@ -39,7 +39,6 @@ public class SmartThingsHandlerFactory extends BaseThingHandlerFactory {
 
     @Override
     protected ThingHandler createHandler(Thing thing) {
-
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
         if (thingTypeUID.equals(THING_TYPE_BRIDGE)) {
             SmartThingsBridgeHandler bridgeHandler = new SmartThingsBridgeHandler((Bridge) thing);
