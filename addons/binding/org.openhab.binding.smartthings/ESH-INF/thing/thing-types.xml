@@ -4,18 +4,12 @@
         xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
         xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
-    <bridge-type id="smartthingsapi">
+    <bridge-type id="bridge">
         <label>SmartThings OpenHAB SmartApp API</label>
         <description>This bridge represents the gateway to SmartThings OpenHab SmartApp.</description>
-                
-       <channels>           
-            <channel id="channel1" typeId="sample-channel"/>
-        </channels>
-        
         <config-description-ref uri="thing-type:smartthings:bridge" />
-                
     </bridge-type>
-    
+    <!-- 
     <thing-type id="switch">
         <supported-bridge-type-refs>
             <bridge-type-ref id="smartthingsapi" />
@@ -37,13 +31,6 @@
             </parameter>
         </config-description>
     </thing-type>
-    
-
-    <!-- Sample Channel Type -->
-    <channel-type id="sample-channel">
-        <item-type>smartthingsItem</item-type>
-        <label>SmartThings Binding Channel</label>
-        <description>Sample channel for SmartThings Binding</description>
-    </channel-type>
+     -->
 
 </thing:thing-descriptions>

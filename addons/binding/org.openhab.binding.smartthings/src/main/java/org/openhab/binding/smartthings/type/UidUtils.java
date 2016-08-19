@@ -8,6 +8,9 @@
  */
 package org.openhab.binding.smartthings.type;
 
+import static org.openhab.binding.smartthings.SmartThingsBindingConstants.BINDING_ID;
+
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -15,6 +18,8 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeUID;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
+import org.openhab.binding.smartthings.client.model.Attribute;
+import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
 
@@ -30,30 +35,28 @@ public class UidUtils {
      * device has more datapoints.
      */
     public static ThingTypeUID generateThingTypeUID(Device device) {
-        // if (!device.isGatewayExtras() && device.getGatewayId().equals(HmGatewayInfo.ID_HOMEGEAR)) {
-        // return new ThingTypeUID(BINDING_ID, String.format("HG-%s", device.getType()));
-        // } else {
-        // return new ThingTypeUID(BINDING_ID, String.format(device.getType()));
-        // }
-        return null;
+
+        return new ThingTypeUID(BINDING_ID, device.getTypeId());
+
     }
 
     /**
      * Generates the ChannelTypeUID for the given datapoint with deviceType, channelNumber and datapointName.
      */
-    public static ChannelTypeUID generateChannelTypeUID(CurrentValue dp) {
-        // return new ChannelTypeUID(BINDING_ID, String.format("%s_%s_%s", dp.getChannel().getDevice().getType(),
-        // dp.getChannel().getNumber(), dp.getName()));
-        return null;
+    public static ChannelTypeUID generateChannelTypeUID(Capability capability, Attribute attribute) {
+        return new ChannelTypeUID(BINDING_ID, String.format("%s_%s", capability.getName(), attribute.getName()));
+    }
+
+    public static ChannelTypeUID generateChannelTypeUID(String... keys) {
+        String id = StringUtils.join(keys, "_");
+        return new ChannelTypeUID(BINDING_ID, id);
     }
 
     /**
      * Generates the ChannelTypeUID for the given datapoint with deviceType and channelNumber.
      */
-    public static ChannelGroupTypeUID generateChannelGroupTypeUID(CurrentValue channel) {
-        // return new ChannelGroupTypeUID(BINDING_ID,
-        // String.format("%s_%s", channel.getDevice().getType(), channel.getNumber()));
-        return null;
+    public static ChannelGroupTypeUID generateChannelGroupTypeUID(Device channel) {
+        return new ChannelGroupTypeUID(BINDING_ID, channel.getTypeId() + "_Channels");
     }
 
     /**
@@ -83,7 +86,7 @@ public class UidUtils {
     /**
      * Returns the address of the Homematic device from the given thing.
      */
-    public static String getHomematicAddress(Thing thing) {
+    public static String getSmartThingsDeviceId(Thing thing) {
         return thing.getUID().getId();
     }
 

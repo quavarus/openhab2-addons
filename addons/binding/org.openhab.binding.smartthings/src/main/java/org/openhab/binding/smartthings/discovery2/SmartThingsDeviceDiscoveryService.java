@@ -106,10 +106,10 @@ public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService 
                 @Override
                 public void run() {
                     try {
-                        // bridgeHandler.getGateway().loadAllDeviceMetadata();
-                        bridgeHandler.getTypeGenerator().validateFirmwares();
-                        // logger.debug("Finished SmartThings device discovery scan on gateway '{}'",
-                        // bridgeHandler.getGateway().getId());
+                        for (Device device : bridgeHandler.getGateway().getDevices()) {
+                            bridgeHandler.onDeviceLoaded(device);
+                        }
+                        logger.debug("Finished SmartThings device discovery scan on gateway");
                     } catch (Throwable ex) {
                         logger.error(ex.getMessage(), ex);
                     } finally {
@@ -139,7 +139,7 @@ public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService 
         ThingUID bridgeUID = bridgeHandler.getThing().getUID();
         ThingTypeUID typeUid = UidUtils.generateThingTypeUID(device);
         ThingUID thingUID = new ThingUID(typeUid, bridgeUID, device.getId());
-        String label = device.getName() != null ? device.getName() : device.getId();
+        String label = device.getDisplayName() != null ? device.getDisplayName() : device.getId();
 
         DiscoveryResult discoveryResult = DiscoveryResultBuilder.create(thingUID).withBridge(bridgeUID).withLabel(label)
                 .build();

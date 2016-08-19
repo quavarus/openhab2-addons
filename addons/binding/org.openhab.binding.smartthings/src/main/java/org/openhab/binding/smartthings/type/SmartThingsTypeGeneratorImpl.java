@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.WordUtils;
 import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameter;
 import org.eclipse.smarthome.config.core.ConfigDescriptionParameterGroup;
@@ -29,11 +28,12 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.type.ChannelDefinition;
 import org.eclipse.smarthome.core.thing.type.ChannelGroupDefinition;
 import org.eclipse.smarthome.core.thing.type.ChannelGroupType;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeUID;
 import org.eclipse.smarthome.core.thing.type.ChannelType;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
 import org.eclipse.smarthome.core.thing.type.ThingType;
-import org.openhab.binding.smartthings.client.model.CurrentValue;
+import org.eclipse.smarthome.core.types.StateDescription;
+import org.openhab.binding.smartthings.client.model.Attribute;
+import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,40 +102,54 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             logger.debug("Generating ThingType for device '{}' with {} datapoints", device.getName(),
                     device.getCapabilities());
 
-            List<ChannelGroupType> groupTypes = new ArrayList<ChannelGroupType>();
-            for (CurrentValue channel : device.getCurrentValues()) {
-                List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
-                // generate channel
-                // for (HmDatapoint dp : channel.getDatapoints().values()) {
-                // if (!isStatusDatapoint(dp) && !isIgnoredDatapoint(dp)) {
-                // if (dp.getParamsetType() == HmParamsetType.VALUES) {
-                // ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(dp);
-                // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID,
-                // Locale.getDefault());
-                // if (channelType == null) {
-                // channelType = createChannelType(dp, channelTypeUID);
-                // channelTypeProvider.addChannelType(channelType);
-                // }
-                //
-                // ChannelDefinition channelDef = new ChannelDefinition(dp.getName(), channelType.getUID());
-                // channelDefinitions.add(channelDef);
-                // }
-                // }
-                // }
+            // if the device is an actuator we need to map it some control channel
+            List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
+            for (Capability capability : device.getCapabilities()) {
+                Map<String, String> channelTypeMap = MetadataUtils.mapCapabilityToChannelTypes(capability);
+                for (Map.Entry<String, String> entry : channelTypeMap.entrySet()) {
+                    ChannelTypeUID channelTypeUID = UidUtils
+                            .generateChannelTypeUID(capability.getName().replaceAll("[^a-zA-Z0-9-_]", "_"));
+                    ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
+                    if (channelType == null) {
+                        channelType = createChannelType(channelTypeUID, entry.getKey(), entry.getValue());
+                        channelTypeProvider.addChannelType(channelType);
+                    }
 
-                // generate group
-                ChannelGroupTypeUID groupTypeUID = UidUtils.generateChannelGroupTypeUID(channel);
-                ChannelGroupType groupType = channelTypeProvider.getChannelGroupType(groupTypeUID, Locale.getDefault());
-                if (groupType == null) {
-                    String groupLabel = String.format("%s",
-                            WordUtils.capitalizeFully(StringUtils.replace(channel.getName(), "_", " ")));
-                    groupType = new ChannelGroupType(groupTypeUID, false, groupLabel, null, channelDefinitions);
-                    channelTypeProvider.addChannelGroupType(groupType);
-                    groupTypes.add(groupType);
+                    ChannelDefinition channelDef = new ChannelDefinition("control", channelType.getUID());
+                    channelDefinitions.add(channelDef);
                 }
 
             }
-            tt = createThingType(device, groupTypes);
+
+            // for (Capability channel : device.getCapabilities()) {
+            //
+            // // generate channel
+            // for (Attribute attribute : channel.getAttributes()) {
+            // ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(channel, attribute);
+            // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
+            // if (channelType == null) {
+            // channelType = createChannelType(channel, attribute, channelTypeUID);
+            // channelTypeProvider.addChannelType(channelType);
+            // }
+            //
+            // ChannelDefinition channelDef = new ChannelDefinition(dp.getName(), channelType.getUID());
+            // channelDefinitions.add(channelDef);
+            // }
+            // }
+
+            // generate group
+            List<ChannelGroupType> groupTypes = new ArrayList<ChannelGroupType>();
+            // ChannelGroupTypeUID groupTypeUID = UidUtils.generateChannelGroupTypeUID(device);
+            // ChannelGroupType groupType = channelTypeProvider.getChannelGroupType(groupTypeUID, Locale.getDefault());
+            // if (groupType == null) {
+            // String groupLabel = String.format("%s",
+            // WordUtils.capitalizeFully(StringUtils.replace(device.getName(), "_", " ")));
+            // groupType = new ChannelGroupType(groupTypeUID, false, groupLabel, null, channelDefinitions);
+            // channelTypeProvider.addChannelGroupType(groupType);
+            // groupTypes.add(groupType);
+            // }
+
+            tt = createThingType(device, channelDefinitions, groupTypes);
             thingTypeProvider.addThingType(tt);
         }
         addFirmware(device);
@@ -176,7 +190,8 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
     /**
      * Creates the ThingType for the given device.
      */
-    private ThingType createThingType(Device device, List<ChannelGroupType> groupTypes) {
+    private ThingType createThingType(Device device, List<ChannelDefinition> channelDefinitions,
+            List<ChannelGroupType> groupTypes) {
         String label = device.getDisplayName();
         String description = String.format("%s (%s)", label, device.getName());
 
@@ -199,14 +214,51 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             groupDefinitions.add(new ChannelGroupDefinition(id, groupType.getUID()));
         }
 
-        return new ThingType(thingTypeUID, supportedBridgeTypeUids, label, description, null, groupDefinitions,
-                properties, configDescriptionURI);
+        return new ThingType(thingTypeUID, supportedBridgeTypeUids, label, description, channelDefinitions,
+                groupDefinitions, properties, configDescriptionURI);
     }
 
     /**
      * Creates the ChannelType for the given datapoint.
      */
-    private ChannelType createChannelType(CurrentValue dp, ChannelTypeUID channelTypeUID) {
+
+    private ChannelType createChannelType(ChannelTypeUID channelTypeUID, String itemType, String name) {
+        ChannelType channelType = null;
+        // if (dp.getName().equals(DATAPOINT_NAME_LOWBAT)) {
+        // channelType = DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_LOW_BATTERY;
+        // } else if (dp.getName().equals(DATAPOINT_NAME_RSSI_DEVICE)) {
+        // channelType = DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_SIGNAL_STRENGTH;
+        // } else {
+        // String itemType = MetadataUtils.getItemType(dp);
+        String category = "Light";
+        String label = name;
+        String description = name;
+
+        // List<StateOption> options = MetadataUtils.generateOptions(dp, new OptionsBuilder<StateOption>() {
+        // @Override
+        // public StateOption createOption(String value, String description) {
+        // return new StateOption(value, description);
+        // }
+        // });
+
+        StateDescription state = null;
+        // if (dp.isNumberType()) {
+        // BigDecimal min = MetadataUtils.createBigDecimal(dp.getMinValue());
+        // BigDecimal max = MetadataUtils.createBigDecimal(dp.getMaxValue());
+        // BigDecimal step = MetadataUtils.createBigDecimal(dp.isFloatType() ? new Float(0.1) : 1L);
+        // state = new StateDescription(min, max, step, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
+        // } else {
+        // state = new StateDescription(null, null, null, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
+        // }
+
+        channelType = new ChannelType(channelTypeUID, false, itemType, label, description, category, null, state,
+                configDescriptionUriChannel);
+        //
+        // }
+        return channelType;
+    }
+
+    private ChannelType createChannelType(Capability dp, Attribute attribute, ChannelTypeUID channelTypeUID) {
         ChannelType channelType = null;
         // if (dp.getName().equals(DATAPOINT_NAME_LOWBAT)) {
         // channelType = DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_LOW_BATTERY;
@@ -230,17 +282,15 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
         // BigDecimal min = MetadataUtils.createBigDecimal(dp.getMinValue());
         // BigDecimal max = MetadataUtils.createBigDecimal(dp.getMaxValue());
         // BigDecimal step = MetadataUtils.createBigDecimal(dp.isFloatType() ? new Float(0.1) : 1L);
-        // state = new StateDescription(min, max, step, MetadataUtils.getStatePattern(dp), dp.isReadOnly(),
-        // options);
+        // state = new StateDescription(min, max, step, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
         // } else {
-        // state = new StateDescription(null, null, null, MetadataUtils.getStatePattern(dp), dp.isReadOnly(),
-        // options);
+        // state = new StateDescription(null, null, null, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
         // }
         //
         // channelType = new ChannelType(channelTypeUID, !MetadataUtils.isStandard(dp), itemType, label, description,
         // category, null, state, configDescriptionUriChannel);
-        //
-        // }
+        // //
+        // // }
         return channelType;
     }
 

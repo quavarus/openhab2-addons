@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+-->
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="org.openhab.binding.smartthings.type.SmartThingsTypeGenerator">
+   <implementation class="org.openhab.binding.smartthings.type.SmartThingsTypeGeneratorImpl"/>
+   <service>
+      <provide interface="org.openhab.binding.smartthings.type.SmartThingsTypeGenerator"/>
+   </service>
+   
+   <reference bind="setThingTypeProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsThingTypeProvider" name="ThingTypeProvider" policy="dynamic" unbind="unsetThingTypeProvider"/>
+   <reference bind="setChannelTypeProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsChannelTypeProvider" name="ChannelTypeProvider" policy="dynamic" unbind="unsetChannelTypeProvider"/>
+   <reference bind="setConfigDescriptionProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsConfigDescriptionProvider" name="ConfigDescriptionProvider" policy="dynamic" unbind="unsetConfigDescriptionProvider"/>
+
+</scr:component>

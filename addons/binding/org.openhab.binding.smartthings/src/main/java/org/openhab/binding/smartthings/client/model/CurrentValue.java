@@ -1,12 +1,13 @@
 package org.openhab.binding.smartthings.client.model;
 
-import java.util.List;
+import java.util.Date;
 
 public class CurrentValue {
     private String name;
     private String dataType;
-    private List<String> possibleValues;
     private Object value;
+    private String unit;
+    private long date;
 
     public String getName() {
         return name;
@@ -16,12 +17,16 @@ public class CurrentValue {
         return dataType;
     }
 
-    public List<String> getPossibleValues() {
-        return possibleValues;
-    }
-
     public Object getValue() {
         return value;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public Date getDate() {
+        return new Date(date);
     }
 
 }

@@ -12,8 +12,13 @@ import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.openhab.binding.smartthings.client.SmartThingsClientException;
+import org.openhab.binding.smartthings.client.SmartThingsService;
+import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.type.UidUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,49 +39,51 @@ public class SmartThingsThingHandler extends BaseThingHandler {
      */
     @Override
     public void initialize() {
-        // try {
-        // SmartThingsGateway gateway = getSmartThingsGateway();
-        // HmDevice device = gateway.getDevice(UidUtils.getSmartThingsAddress(getThing()));
-        // updateStatus(device);
-        // if (!device.isOffline()) {
-        // logger.debug("Initializing {} channels of thing '{}' from gateway '{}'",
-        // getThing().getChannels().size(), getThing().getUID(), gateway.getId());
-        //
-        // // update channel states
-        // for (Channel channel : getThing().getChannels()) {
-        // updateChannelState(channel.getUID());
-        // }
-        //
-        // // update properties
-        // Map<String, String> properties = editProperties();
-        // setProperty(properties, device, PROPERTY_BATTERY_TYPE, VIRTUAL_DATAPOINT_NAME_BATTERY_TYPE);
-        // setProperty(properties, device, Thing.PROPERTY_FIRMWARE_VERSION, VIRTUAL_DATAPOINT_NAME_FIRMWARE);
-        // setProperty(properties, device, Thing.PROPERTY_SERIAL_NUMBER, device.getAddress());
-        // setProperty(properties, device, PROPERTY_AES_KEY, DATAPOINT_NAME_AES_KEY);
-        // updateProperties(properties);
-        //
-        // // update configurations
-        // Configuration config = editConfiguration();
-        // for (HmChannel channel : device.getChannels()) {
-        // for (HmDatapoint dp : channel.getDatapoints().values()) {
-        // if (dp.getParamsetType() == HmParamsetType.MASTER) {
-        // loadSmartThingsChannelValues(dp.getChannel());
-        // config.put(MetadataUtils.getParameterName(dp),
-        // dp.isEnumType() ? dp.getOptionValue() : dp.getValue());
-        // }
-        // }
-        // }
-        // updateConfiguration(config);
-        // }
-        // } catch (SmartThingsClientException ex) {
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, ex.getMessage());
-        // } catch (IOException ex) {
+        try {
+            SmartThingsService gateway = getSmartThingsGateway();
+            Device device = gateway.getDevice(UidUtils.getSmartThingsDeviceId(getThing()));
+            updateStatus(device);
+            // if (!device.isOffline()) {
+            // logger.debug("Initializing {} channels of thing '{}'",
+            // getThing().getChannels().size(), getThing().getUID());
+            //
+            // // update channel states
+            // for (Channel channel : getThing().getChannels()) {
+            // updateChannelState(channel.getUID());
+            // }
+            //
+            // // update properties
+            // Map<String, String> properties = editProperties();
+            // setProperty(properties, device, PROPERTY_BATTERY_TYPE, VIRTUAL_DATAPOINT_NAME_BATTERY_TYPE);
+            // setProperty(properties, device, Thing.PROPERTY_FIRMWARE_VERSION, VIRTUAL_DATAPOINT_NAME_FIRMWARE);
+            // setProperty(properties, device, Thing.PROPERTY_SERIAL_NUMBER, device.getAddress());
+            // setProperty(properties, device, PROPERTY_AES_KEY, DATAPOINT_NAME_AES_KEY);
+            // updateProperties(properties);
+            //
+            // // update configurations
+            // Configuration config = editConfiguration();
+            // for (HmChannel channel : device.getChannels()) {
+            // for (HmDatapoint dp : channel.getDatapoints().values()) {
+            // if (dp.getParamsetType() == HmParamsetType.MASTER) {
+            // loadSmartThingsChannelValues(dp.getChannel());
+            // config.put(MetadataUtils.getParameterName(dp),
+            // dp.isEnumType() ? dp.getOptionValue() : dp.getValue());
+            // }
+            // }
+            // }
+            // updateConfiguration(config);
+            // }
+        } catch (SmartThingsClientException ex) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, ex.getMessage());
+        }
+        // catch (IOException ex) {
         // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
-        // } catch (BridgeHandlerNotAvailableException ex) {
-        // // ignore
-        // } catch (Exception ex) {
-        // logger.error(ex.getMessage(), ex);
         // }
+        catch (BridgeHandlerNotAvailableException ex) {
+            // ignore
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+        }
     }
 
     /**
@@ -164,7 +171,7 @@ public class SmartThingsThingHandler extends BaseThingHandler {
      */
     // private void updateChannelState(ChannelUID channelUID)
     // throws BridgeHandlerNotAvailableException, SmartThingsClientException, IOException, ConverterException {
-    // SmartThingsGateway gateway = getSmartThingsGateway();
+    // SmartThingsService gateway = getSmartThingsGateway();
     // HmDatapointInfo dpInfo = UidUtils.createHmDatapointInfo(channelUID);
     // HmDatapoint dp = gateway.getDatapoint(dpInfo);
     // Channel channel = getThing().getChannel(channelUID.getId());
@@ -217,9 +224,9 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     // }
     // }
 
-    // /**
-    // * Loads all values for the given SmartThings channel if it is not initialized.
-    // */
+    /**
+     * Loads all values for the given SmartThings channel if it is not initialized.
+     */
     // private void loadSmartThingsChannelValues(HmChannel hmChannel)
     // throws BridgeHandlerNotAvailableException, IOException {
     // if (!hmChannel.isInitialized()) {
@@ -240,34 +247,34 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     // }
     // }
 
-    // /**
-    // * Updates the thing status based on device status.
-    // */
-    // private void updateStatus(HmDevice device) throws BridgeHandlerNotAvailableException, IOException {
-    // loadSmartThingsChannelValues(device.getChannel(0));
-    //
-    // ThingStatus oldStatus = thing.getStatus();
-    // ThingStatus newStatus = ThingStatus.ONLINE;
-    // ThingStatusDetail newDetail = ThingStatusDetail.NONE;
-    //
-    // if (device.isFirmwareUpdating()) {
-    // newStatus = ThingStatus.OFFLINE;
-    // newDetail = ThingStatusDetail.FIRMWARE_UPDATING;
-    // } else if (device.isUnreach()) {
-    // newStatus = ThingStatus.OFFLINE;
-    // newDetail = ThingStatusDetail.COMMUNICATION_ERROR;
-    // } else if (device.isConfigPending() || device.isUpdatePending()) {
-    // newStatus = thing.getStatus();
-    // newDetail = ThingStatusDetail.CONFIGURATION_PENDING;
-    // }
-    //
-    // if (thing.getStatus() != newStatus || thing.getStatusInfo().getStatusDetail() != newDetail) {
-    // updateStatus(newStatus, newDetail);
-    // }
-    // if (oldStatus == ThingStatus.OFFLINE && newStatus == ThingStatus.ONLINE) {
-    // initialize();
-    // }
-    // }
+    /**
+     * Updates the thing status based on device status.
+     */
+    private void updateStatus(Device device) throws BridgeHandlerNotAvailableException {
+        // loadSmartThingsChannelValues(device.getChannel(0));
+
+        ThingStatus oldStatus = thing.getStatus();
+        ThingStatus newStatus = ThingStatus.ONLINE;
+        ThingStatusDetail newDetail = ThingStatusDetail.NONE;
+
+        // if (device.isFirmwareUpdating()) {
+        // newStatus = ThingStatus.OFFLINE;
+        // newDetail = ThingStatusDetail.FIRMWARE_UPDATING;
+        // } else if (device.isUnreach()) {
+        // newStatus = ThingStatus.OFFLINE;
+        // newDetail = ThingStatusDetail.COMMUNICATION_ERROR;
+        // } else if (device.isConfigPending() || device.isUpdatePending()) {
+        // newStatus = thing.getStatus();
+        // newDetail = ThingStatusDetail.CONFIGURATION_PENDING;
+        // }
+
+        if (thing.getStatus() != newStatus || thing.getStatusInfo().getStatusDetail() != newDetail) {
+            updateStatus(newStatus, newDetail);
+        }
+        if (oldStatus == ThingStatus.OFFLINE && newStatus == ThingStatus.ONLINE) {
+            initialize();
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -298,17 +305,17 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     /**
      * Returns the SmartThings gateway if the bridge is available.
      */
-    // private SmartThingsGateway getSmartThingsGateway() throws BridgeHandlerNotAvailableException {
-    // if (getBridge() == null || getBridge().getHandler() == null
-    // || ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway() == null) {
-    // if (thing.getStatus() != ThingStatus.INITIALIZING) {
-    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_MISSING_ERROR);
-    // }
-    // throw new BridgeHandlerNotAvailableException("BridgeHandler not yet available!");
-    // }
-    //
-    // return ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway();
-    // }
+    private SmartThingsService getSmartThingsGateway() throws BridgeHandlerNotAvailableException {
+        if (getBridge() == null || getBridge().getHandler() == null
+                || ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway() == null) {
+            if (thing.getStatus() != ThingStatus.INITIALIZING) {
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_MISSING_ERROR);
+            }
+            throw new BridgeHandlerNotAvailableException("BridgeHandler not yet available!");
+        }
+
+        return ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway();
+    }
 
     // /**
     // * {@inheritDoc}

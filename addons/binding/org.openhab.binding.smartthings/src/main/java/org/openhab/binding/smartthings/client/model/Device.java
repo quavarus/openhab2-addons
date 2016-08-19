@@ -6,12 +6,17 @@ import java.util.Map;
 
 public class Device {
     private String id;
+    private String typeId;
     private String displayName;
     private String name;
-    private List<String> capabilities;
-    private List<Command> commands;
+    private String label;
+    private List<Capability> capabilities;
+    private List<Command> supportedCommands;
+    private List<Attribute> supportedAttributes;
     private List<CurrentValue> currentValues;
+
     private transient Map<String, CurrentValue> currentValueMap = null;
+    private transient Map<String, Capability> capabilityMap = null;
 
     private void initCurrentValueMap() {
         currentValueMap = new HashMap<>();
@@ -20,11 +25,25 @@ public class Device {
         }
     }
 
+    private void initCapabilityMap() {
+        capabilityMap = new HashMap<>();
+        for (Capability capability : this.capabilities) {
+            capabilityMap.put(capability.getName(), capability);
+        }
+    }
+
     public Map<String, CurrentValue> getCurrentValueMap() {
         if (currentValueMap == null) {
             initCurrentValueMap();
         }
         return currentValueMap;
+    }
+
+    public Map<String, Capability> getCapabilityMap() {
+        if (capabilityMap == null) {
+            initCapabilityMap();
+        }
+        return capabilityMap;
     }
 
     public String getId() {
@@ -39,16 +58,27 @@ public class Device {
         return name;
     }
 
-    public List<String> getCapabilities() {
+    public List<Capability> getCapabilities() {
         return capabilities;
     }
 
-    public List<Command> getCommands() {
-        return commands;
+    public String getLabel() {
+        return label;
+    }
+
+    public List<Command> getSupportedCommands() {
+        return supportedCommands;
+    }
+
+    public List<Attribute> getSupportedAttributes() {
+        return supportedAttributes;
     }
 
     public List<CurrentValue> getCurrentValues() {
         return currentValues;
     }
 
+    public String getTypeId() {
+        return typeId;
+    }
 }

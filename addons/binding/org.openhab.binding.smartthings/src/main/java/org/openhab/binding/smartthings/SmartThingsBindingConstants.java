@@ -28,7 +28,7 @@ public class SmartThingsBindingConstants {
     public static final String POLLING_INTERVAL = "pollingInterval";
 
     // List of all Thing Type UIDs
-    public final static ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "smartthingsapi");
+    public final static ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "bridge");
     public final static ThingTypeUID THING_TYPE_SWITCH = new ThingTypeUID(BINDING_ID, "switch");
 
     // List of all Channel ids
@@ -52,8 +52,8 @@ public class SmartThingsBindingConstants {
             });
 
     // things from homematic
-    public static final String CONFIG_DESCRIPTION_URI_CHANNEL = "channel-type:homematic:config";
-    public static final String CONFIG_DESCRIPTION_URI_THING = "thing-type:homematic:config";
+    public static final String CONFIG_DESCRIPTION_URI_CHANNEL = "channel-type:smartthings:config";
+    public static final String CONFIG_DESCRIPTION_URI_THING = "thing-type:smartthings:config";
 
     public static final String PROPERTY_VENDOR_NAME = "eQ-3 AG";
 

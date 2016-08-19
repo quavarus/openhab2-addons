@@ -9,16 +9,29 @@
 package org.openhab.binding.smartthings.handler2;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
 import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
+import org.openhab.binding.smartthings.client.SmartThingsClientException;
+import org.openhab.binding.smartthings.client.SmartThingsService;
+import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.openhab.binding.smartthings.discovery2.SmartThingsDeviceDiscoveryService;
@@ -44,10 +57,14 @@ import org.slf4j.LoggerFactory;
 public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private static final Logger logger = LoggerFactory.getLogger(SmartThingsBridgeHandler.class);
     private static final long REINITIALIZE_DELAY_SECONDS = 10;
-    private static SimplePortPool portPool = new SimplePortPool();
+    // private static SimplePortPool portPool = new SimplePortPool();
+
+    private final String authorizeUrl = "https://graph.api.smartthings.com/oauth/authorize";
+    private final String redirectUrl = "http://www.openhab.org/oauth/smartthings";
+    private final String tokenUrl = "https://graph.api.smartthings.com/oauth/token";
 
     private SmartThingsBridgeConfiguration config;
-    // private SmartThingsGateway gateway;
+    private SmartThingsService gateway;
     private SmartThingsTypeGenerator typeGenerator;
 
     private SmartThingsDeviceDiscoveryService discoveryService;
@@ -58,17 +75,90 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         this.typeGenerator = typeGenerator;
     }
 
+    @Override
+    public void initialize() {
+        logger.debug("Initializing SmartThings bridge handler.");
+
+        config = createSmartThingsConfig();
+        updateAuthenticatingUrl();
+
+        if (config.token == null || config.token.trim().length() == 0) {
+            updateStatus(ThingStatus.OFFLINE);
+            if (config.code != null && config.code.trim().length() > 0) {
+                requestAccessToken();
+            }
+            return;
+        }
+        initializeCommunication();
+
+    }
+
+    private void updateAuthenticatingUrl() {
+        String url = getAuthenticationUrl();
+        Configuration fig = getConfig();
+        fig.put("authUrl", url);
+        updateConfiguration(fig);
+    }
+
+    private String getAuthenticationUrl() {
+        try {
+            String scope = "app";
+            String responseType = "code";
+            OAuthClientRequest request = OAuthClientRequest.authorizationLocation(authorizeUrl)
+                    .setClientId(config.clientId).setRedirectURI(redirectUrl).setScope(scope)
+                    .setResponseType(responseType).buildQueryMessage();
+            return request.getLocationUri();
+        } catch (OAuthSystemException ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+        return null;
+    }
+
+    private void requestAccessToken() {
+        OAuthClientRequest request = null;
+        try {
+            request = OAuthClientRequest.tokenLocation(tokenUrl).setGrantType(GrantType.AUTHORIZATION_CODE)
+                    .setClientId(config.clientId).setClientSecret(config.clientSecret).setRedirectURI(redirectUrl)
+                    .setCode(config.code).buildQueryMessage();
+
+        } catch (OAuthSystemException ex) {
+            logger.error(ex.getMessage(), ex);
+            // printAuthenticationFailed(ex);
+            return;
+        }
+
+        // create OAuth client that uses custom http client under the hood
+        OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+
+        OAuthJSONAccessTokenResponse oAuthResponse;
+        try {
+            oAuthResponse = oAuthClient.accessToken(request);
+            String accessToken = oAuthResponse.getAccessToken();
+            Configuration config = getConfig();
+            config.put("token", accessToken);
+            config.remove("code");
+            updateConfiguration(config);
+            initializeCommunication();
+        } catch (OAuthSystemException | OAuthProblemException e) {
+            logger.error(e.getMessage(), e);
+            // printAuthenticationFailed(e);
+            Configuration config = getConfig();
+            config.remove("code");
+            updateConfiguration(config);
+            updateStatus(ThingStatus.OFFLINE);
+            // updateThing(getThing());
+            // return;
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void initialize() {
+    private void initializeCommunication() {
         // try {
-        String id = getThing().getUID().getId();
         config = createSmartThingsConfig();
 
-        // gateway = SmartThingsGatewayFactory.createGateway(id, config, this);
-        // gateway.initialize();
+        gateway = new SmartThingsService(config.clientId, config.token);
 
         registerDeviceDiscoveryService();
         scheduler.submit(new Runnable() {
@@ -84,11 +174,18 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
             }
         });
 
-        // } catch (IOException ex) {
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
-        // dispose();
-        // scheduleReinitialize();
-        // }
+        try {
+            List<Device> devices = gateway.getDevices();
+            if (devices == null || devices.size() == 0) {
+                throw new RuntimeException("No Devices Authorized");
+            }
+            updateStatus(ThingStatus.ONLINE);
+        } catch (Exception ex) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
+            dispose();
+            scheduleReinitialize();
+        }
+
     }
 
     /**
@@ -99,7 +196,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
 
             @Override
             public void run() {
-                initialize();
+                initializeCommunication();
             }
         }, REINITIALIZE_DELAY_SECONDS, TimeUnit.SECONDS);
     }
@@ -154,11 +251,11 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
      */
     public void setOfflineStatus() {
         for (Thing hmThing : getThing().getThings()) {
-            // try {
-            // gateway.getDevice(UidUtils.getSmartThingsAddress(hmThing));
-            // } catch (SmartThingsClientException e) {
-            // ((SmartThingsThingHandler) hmThing.getHandler()).updateStatus(ThingStatus.OFFLINE);
-            // }
+            try {
+                gateway.getDevice(UidUtils.getSmartThingsDeviceId(hmThing));
+            } catch (SmartThingsClientException e) {
+                ((SmartThingsThingHandler) hmThing.getHandler()).updateStatus(ThingStatus.OFFLINE);
+            }
         }
     }
 
@@ -187,7 +284,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (RefreshType.REFRESH == command) {
             logger.debug("Refreshing bridge '{}'", getThing().getUID().getId());
-            // reloadAllDeviceValues();
+            reloadAllDeviceValues();
         }
     }
 
@@ -198,12 +295,12 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         return typeGenerator;
     }
 
-    // /**
-    // * Returns the SmartThingsGateway.
-    // */
-    // public SmartThingsGateway getGateway() {
-    // return gateway;
-    // }
+    /**
+     * Returns the SmartThingsGateway.
+     */
+    public SmartThingsService getGateway() {
+        return gateway;
+    }
 
     /**
      * Updates the thing for the given SmartThings device.
@@ -218,93 +315,82 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     /**
      * {@inheritDoc}
      */
-    // @Override
-    // public void onStateUpdated(HmDatapoint dp) {
-    // Thing hmThing = getThingByUID(UidUtils.generateThingUID(dp.getChannel().getDevice(), getThing()));
-    // if (hmThing != null) {
-    // SmartThingsThingHandler thingHandler = (SmartThingsThingHandler) hmThing.getHandler();
-    // thingHandler.updateDatapointState(dp);
-    // }
-    // }
+    public void onStateUpdated(Device device, CurrentValue dp) {
+        Thing hmThing = getThingByUID(UidUtils.generateThingUID(device, getThing()));
+        if (hmThing != null) {
+            SmartThingsThingHandler thingHandler = (SmartThingsThingHandler) hmThing.getHandler();
+            // thingHandler.updateDatapointState(dp);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onNewDevice(Device device) {
+        onDeviceLoaded(device);
+        updateThing(device);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onDeviceDeleted(Device device) {
+        discoveryService.deviceRemoved(device);
+        updateThing(device);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onServerRestart() {
+        reloadAllDeviceValues();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onConnectionLost() {
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onConnectionResumed() {
+        updateStatus(ThingStatus.ONLINE);
+        reloadAllDeviceValues();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void onDeviceLoaded(Device device) {
+        typeGenerator.generate(device);
+        if (discoveryService != null) {
+            discoveryService.deviceDiscovered(device);
+        }
+    }
 
     /**
      * {@inheritDoc}
      */
     // @Override
-    // public void onNewDevice(HmDevice device) {
-    // onDeviceLoaded(device);
-    // updateThing(device);
-    // }
+    public void reloadDeviceValues(Device device) {
+        updateThing(device);
+    }
 
     /**
      * {@inheritDoc}
      */
-    // @Override
-    // public void onDeviceDeleted(HmDevice device) {
-    // discoveryService.deviceRemoved(device);
-    // updateThing(device);
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void onServerRestart() {
-    // reloadAllDeviceValues();
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void onConnectionLost() {
-    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void onConnectionResumed() {
-    // updateStatus(ThingStatus.ONLINE);
-    // reloadAllDeviceValues();
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void onDeviceLoaded(HmDevice device) {
-    // typeGenerator.generate(device);
-    // if (discoveryService != null) {
-    // discoveryService.deviceDiscovered(device);
-    // }
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void reloadDeviceValues(HmDevice device) {
-    // if (device.isGatewayExtras()) {
-    // typeGenerator.generate(device);
-    // }
-    // updateThing(device);
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    // public void reloadAllDeviceValues() {
-    // for (Thing hmThing : getThing().getThings()) {
-    // try {
-    // HmDevice device = gateway.getDevice(UidUtils.getSmartThingsAddress(hmThing));
-    // gateway.triggerDeviceValuesReload(device);
-    // } catch (SmartThingsClientException ex) {
-    // logger.warn(ex.getMessage());
-    // }
-    // }
-    // }
+    public void reloadAllDeviceValues() {
+        for (Thing hmThing : getThing().getThings()) {
+            try {
+                Device device = gateway.getDevice(UidUtils.getSmartThingsDeviceId(hmThing));
+                reloadDeviceValues(device);
+            } catch (SmartThingsClientException ex) {
+                logger.warn(ex.getMessage());
+            }
+        }
+    }
 
 }

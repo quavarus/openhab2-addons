@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
 <thing:thing-descriptions bindingId="smartthings"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
     xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
-	<!-- Switch Channel -->
+
     <channel-type id="switch">
         <item-type>Switch</item-type>
         <label>Switch</label>
@@ -16,7 +17,6 @@
         </tags>
     </channel-type>
 
-    <!-- Alert Channel -->
     <channel-type id="alert" advanced="true">
         <item-type>String</item-type>
         <label>Alert</label>
@@ -31,3 +31,4 @@
     </channel-type>
 
 </thing:thing-descriptions>
+ -->
