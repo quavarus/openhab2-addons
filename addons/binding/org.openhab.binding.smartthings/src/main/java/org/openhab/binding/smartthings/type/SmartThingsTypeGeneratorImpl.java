@@ -32,6 +32,7 @@ import org.eclipse.smarthome.core.thing.type.ChannelType;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
 import org.eclipse.smarthome.core.thing.type.ThingType;
 import org.eclipse.smarthome.core.types.StateDescription;
+import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.smartthings.client.model.Attribute;
 import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
@@ -105,37 +106,49 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             // if the device is an actuator we need to map it some control channel
             List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
             for (Capability capability : device.getCapabilities()) {
-                Map<String, String> channelTypeMap = MetadataUtils.mapCapabilityToChannelTypes(capability);
-                for (Map.Entry<String, String> entry : channelTypeMap.entrySet()) {
-                    ChannelTypeUID channelTypeUID = UidUtils
-                            .generateChannelTypeUID(capability.getName().replaceAll("[^a-zA-Z0-9-_]", "_"));
-                    ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
+                ChannelTypeUID defaultChannelTypeUID = null;
+                String defaultItemType = null;
+                String defaultItemName = null;
+                switch (capability.getName()) {
+                    case "Switch":
+                        defaultChannelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(), "switch");
+                        defaultItemType = ITEM_TYPE_SWITCH;
+                        defaultItemName = capability.getName();
+                        break;
+                    case "Switch Level":
+                        defaultChannelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(), "level");
+                        defaultItemType = ITEM_TYPE_DIMMER;
+                        defaultItemName = capability.getName();
+                        break;
+                }
+
+                if (defaultChannelTypeUID != null) {
+                    ChannelType channelType = channelTypeProvider.getChannelType(defaultChannelTypeUID,
+                            Locale.getDefault());
                     if (channelType == null) {
-                        channelType = createChannelType(channelTypeUID, entry.getKey(), entry.getValue());
+                        channelType = createChannelType(defaultChannelTypeUID, defaultItemType, defaultItemName);
                         channelTypeProvider.addChannelType(channelType);
                     }
 
-                    ChannelDefinition channelDef = new ChannelDefinition("control", channelType.getUID());
+                    ChannelDefinition channelDef = new ChannelDefinition(channelType.getUID().getAsString(),
+                            channelType.getUID());
                     channelDefinitions.add(channelDef);
                 }
 
-            }
+                for (Attribute attribute : capability.getAttributes()) {
+                    ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(),
+                            attribute.getName());
+                    ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
+                    if (channelType == null) {
+                        channelType = createChannelType(channelTypeUID, attribute);
+                        channelTypeProvider.addChannelType(channelType);
+                    }
 
-            // for (Capability channel : device.getCapabilities()) {
-            //
-            // // generate channel
-            // for (Attribute attribute : channel.getAttributes()) {
-            // ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(channel, attribute);
-            // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
-            // if (channelType == null) {
-            // channelType = createChannelType(channel, attribute, channelTypeUID);
-            // channelTypeProvider.addChannelType(channelType);
-            // }
-            //
-            // ChannelDefinition channelDef = new ChannelDefinition(dp.getName(), channelType.getUID());
-            // channelDefinitions.add(channelDef);
-            // }
-            // }
+                    ChannelDefinition channelDef = new ChannelDefinition(channelType.getUID().getAsString(),
+                            channelType.getUID());
+                    channelDefinitions.add(channelDef);
+                }
+            }
 
             // generate group
             List<ChannelGroupType> groupTypes = new ArrayList<ChannelGroupType>();
@@ -154,6 +167,17 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
         }
         addFirmware(device);
     }
+
+    // private ChannelType createChannelType(String channelTypeName, String itemType){
+    // ChannelTypeUID channelTypeUID = UidUtils
+    // .generateChannelTypeUID(channelTypeName);
+    // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID, Locale.getDefault());
+    // if (channelType == null) {
+    // channelType = createChannelType(channelTypeUID, entry.getKey(), entry.getValue());
+    // channelTypeProvider.addChannelType(channelType);
+    // }
+    //
+    // }
 
     /**
      * {@inheritDoc}
@@ -258,39 +282,51 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
         return channelType;
     }
 
-    private ChannelType createChannelType(Capability dp, Attribute attribute, ChannelTypeUID channelTypeUID) {
+    private ChannelType createChannelType(ChannelTypeUID channelTypeUID, Attribute attribute) {
         ChannelType channelType = null;
         // if (dp.getName().equals(DATAPOINT_NAME_LOWBAT)) {
         // channelType = DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_LOW_BATTERY;
         // } else if (dp.getName().equals(DATAPOINT_NAME_RSSI_DEVICE)) {
         // channelType = DefaultSystemChannelTypeProvider.SYSTEM_CHANNEL_SIGNAL_STRENGTH;
         // } else {
-        // String itemType = MetadataUtils.getItemType(dp);
-        // String category = MetadataUtils.getCategory(dp, itemType);
-        // String label = MetadataUtils.getLabel(dp);
-        // String description = MetadataUtils.getDatapointDescription(dp);
-        //
-        // List<StateOption> options = MetadataUtils.generateOptions(dp, new OptionsBuilder<StateOption>() {
-        // @Override
-        // public StateOption createOption(String value, String description) {
-        // return new StateOption(value, description);
-        // }
-        // });
-        //
-        // StateDescription state = null;
+        String itemType = ITEM_TYPE_STRING;
+        String category = "Light";
+        String label = attribute.getName();
+        String description = attribute.getName();
+        boolean readOnly = true;
+
+        List<StateOption> options = null;
+        switch (attribute.getDataType()) {
+            case "NUMBER":
+                itemType = ITEM_TYPE_NUMBER;
+                break;
+            case "VECTOR3":
+                break;
+            case "ENUM":
+                options = new ArrayList<>();
+                readOnly = false;
+                for (String value : attribute.getValues()) {
+                    options.add(new StateOption(value, value));
+                }
+                break;
+            case "STRING":
+                break;
+        }
+
+        StateDescription state = null;
         // if (dp.isNumberType()) {
         // BigDecimal min = MetadataUtils.createBigDecimal(dp.getMinValue());
         // BigDecimal max = MetadataUtils.createBigDecimal(dp.getMaxValue());
         // BigDecimal step = MetadataUtils.createBigDecimal(dp.isFloatType() ? new Float(0.1) : 1L);
         // state = new StateDescription(min, max, step, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
         // } else {
-        // state = new StateDescription(null, null, null, MetadataUtils.getStatePattern(dp), dp.isReadOnly(), options);
+        state = new StateDescription(null, null, null, null, readOnly, options);
         // }
+
+        channelType = new ChannelType(channelTypeUID, false, itemType, label, description, category, null, state,
+                configDescriptionUriChannel);
         //
-        // channelType = new ChannelType(channelTypeUID, !MetadataUtils.isStandard(dp), itemType, label, description,
-        // category, null, state, configDescriptionUriChannel);
-        // //
-        // // }
+        // }
         return channelType;
     }
 

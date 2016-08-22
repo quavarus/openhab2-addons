@@ -48,8 +48,8 @@ public class UidUtils {
     }
 
     public static ChannelTypeUID generateChannelTypeUID(String... keys) {
-        String id = StringUtils.join(keys, "_");
-        return new ChannelTypeUID(BINDING_ID, id);
+        String id = StringUtils.join(keys, ":");
+        return new ChannelTypeUID(BINDING_ID, id.replaceAll("[^a-zA-Z0-9-_]", "_"));
     }
 
     /**

@@ -96,11 +96,11 @@ public class MetadataUtils {
     /**
      * Creates channel and config description metadata options for the given Datapoint.
      */
-    // public static <T> List<T> generateOptions(HmDatapoint dp, OptionsBuilder<T> optionsBuilder) {
+    // public static <T> List<T> generateOptions(Attribute dp) {
     // List<T> options = null;
-    // if (dp.isEnumType()) {
+    // if (dp.getDataType().equals("ENUM")) {
     // options = new ArrayList<T>();
-    // for (int i = 0; i < dp.getOptions().length; i++) {
+    // for (int i = 0; i < dp.getValues().size(); i++) {
     // String description = null;
     // if (!dp.isVariable() && !dp.isScript()) {
     // description = getDescription(dp.getChannel().getType(), dp.getName(), dp.getOptions()[i]);
