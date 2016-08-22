@@ -31,7 +31,6 @@ import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.openhab.binding.smartthings.client.SmartThingsClientException;
 import org.openhab.binding.smartthings.client.SmartThingsService;
-import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.openhab.binding.smartthings.discovery2.SmartThingsDeviceDiscoveryService;
@@ -312,54 +311,54 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void onStateUpdated(Device device, CurrentValue dp) {
-        Thing hmThing = getThingByUID(UidUtils.generateThingUID(device, getThing()));
-        if (hmThing != null) {
-            SmartThingsThingHandler thingHandler = (SmartThingsThingHandler) hmThing.getHandler();
-            // thingHandler.updateDatapointState(dp);
-        }
-    }
+    // /**
+    // * {@inheritDoc}
+    // */
+    // public void onStateUpdated(Device device, CurrentValue dp) {
+    // Thing hmThing = getThingByUID(UidUtils.generateThingUID(device, getThing()));
+    // if (hmThing != null) {
+    // SmartThingsThingHandler thingHandler = (SmartThingsThingHandler) hmThing.getHandler();
+    // // thingHandler.updateDatapointState(dp);
+    // }
+    // }
 
     /**
      * {@inheritDoc}
      */
-    public void onNewDevice(Device device) {
-        onDeviceLoaded(device);
-        updateThing(device);
-    }
+    // public void onNewDevice(Device device) {
+    // onDeviceLoaded(device);
+    // updateThing(device);
+    // }
 
     /**
      * {@inheritDoc}
      */
-    public void onDeviceDeleted(Device device) {
-        discoveryService.deviceRemoved(device);
-        updateThing(device);
-    }
+    // public void onDeviceDeleted(Device device) {
+    // discoveryService.deviceRemoved(device);
+    // updateThing(device);
+    // }
 
     /**
      * {@inheritDoc}
      */
-    public void onServerRestart() {
-        reloadAllDeviceValues();
-    }
+    // public void onServerRestart() {
+    // reloadAllDeviceValues();
+    // }
 
     /**
      * {@inheritDoc}
      */
-    public void onConnectionLost() {
-        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
-    }
+    // public void onConnectionLost() {
+    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
+    // }
 
     /**
      * {@inheritDoc}
      */
-    public void onConnectionResumed() {
-        updateStatus(ThingStatus.ONLINE);
-        reloadAllDeviceValues();
-    }
+    // public void onConnectionResumed() {
+    // updateStatus(ThingStatus.ONLINE);
+    // reloadAllDeviceValues();
+    // }
 
     /**
      * {@inheritDoc}

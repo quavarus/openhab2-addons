@@ -6,6 +6,7 @@ public class Attribute {
     private String name;
     private String dataType;
     private List<String> values;
+    private String unit;
 
     public String getName() {
         return name;
@@ -17,6 +18,10 @@ public class Attribute {
 
     public List<String> getValues() {
         return values;
+    }
+
+    public String getUnit() {
+        return unit;
     }
 
 }

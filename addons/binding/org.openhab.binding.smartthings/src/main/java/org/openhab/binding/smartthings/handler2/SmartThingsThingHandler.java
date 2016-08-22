@@ -8,6 +8,17 @@
  */
 package org.openhab.binding.smartthings.handler2;
 
+import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+
+import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.OpenClosedType;
+import org.eclipse.smarthome.core.library.types.PercentType;
+import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -15,8 +26,11 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
+import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.smartthings.client.SmartThingsClientException;
 import org.openhab.binding.smartthings.client.SmartThingsService;
+import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.type.UidUtils;
 import org.slf4j.Logger;
@@ -43,36 +57,36 @@ public class SmartThingsThingHandler extends BaseThingHandler {
             SmartThingsService gateway = getSmartThingsGateway();
             Device device = gateway.getDevice(UidUtils.getSmartThingsDeviceId(getThing()));
             updateStatus(device);
-            // if (!device.isOffline()) {
-            // logger.debug("Initializing {} channels of thing '{}'",
-            // getThing().getChannels().size(), getThing().getUID());
-            //
-            // // update channel states
-            // for (Channel channel : getThing().getChannels()) {
-            // updateChannelState(channel.getUID());
-            // }
-            //
-            // // update properties
-            // Map<String, String> properties = editProperties();
-            // setProperty(properties, device, PROPERTY_BATTERY_TYPE, VIRTUAL_DATAPOINT_NAME_BATTERY_TYPE);
-            // setProperty(properties, device, Thing.PROPERTY_FIRMWARE_VERSION, VIRTUAL_DATAPOINT_NAME_FIRMWARE);
-            // setProperty(properties, device, Thing.PROPERTY_SERIAL_NUMBER, device.getAddress());
-            // setProperty(properties, device, PROPERTY_AES_KEY, DATAPOINT_NAME_AES_KEY);
-            // updateProperties(properties);
-            //
-            // // update configurations
-            // Configuration config = editConfiguration();
-            // for (HmChannel channel : device.getChannels()) {
-            // for (HmDatapoint dp : channel.getDatapoints().values()) {
-            // if (dp.getParamsetType() == HmParamsetType.MASTER) {
-            // loadSmartThingsChannelValues(dp.getChannel());
-            // config.put(MetadataUtils.getParameterName(dp),
-            // dp.isEnumType() ? dp.getOptionValue() : dp.getValue());
-            // }
-            // }
-            // }
-            // updateConfiguration(config);
-            // }
+            if (device != null) {
+                logger.debug("Initializing {} channels of thing '{}'", getThing().getChannels().size(),
+                        getThing().getUID());
+
+                // update channel states
+                for (Channel channel : getThing().getChannels()) {
+                    updateChannelState(channel.getUID(), device);
+                }
+
+                // // update properties
+                // Map<String, String> properties = editProperties();
+                // setProperty(properties, device, PROPERTY_BATTERY_TYPE, VIRTUAL_DATAPOINT_NAME_BATTERY_TYPE);
+                // setProperty(properties, device, Thing.PROPERTY_FIRMWARE_VERSION, VIRTUAL_DATAPOINT_NAME_FIRMWARE);
+                // setProperty(properties, device, Thing.PROPERTY_SERIAL_NUMBER, device.getAddress());
+                // setProperty(properties, device, PROPERTY_AES_KEY, DATAPOINT_NAME_AES_KEY);
+                // updateProperties(properties);
+                //
+                // // update configurations
+                // Configuration config = editConfiguration();
+                // for (HmChannel channel : device.getChannels()) {
+                // for (HmDatapoint dp : channel.getDatapoints().values()) {
+                // if (dp.getParamsetType() == HmParamsetType.MASTER) {
+                // loadSmartThingsChannelValues(dp.getChannel());
+                // config.put(MetadataUtils.getParameterName(dp),
+                // dp.isEnumType() ? dp.getOptionValue() : dp.getValue());
+                // }
+                // }
+                // }
+                // updateConfiguration(config);
+            }
         } catch (SmartThingsClientException ex) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, ex.getMessage());
         }
@@ -169,14 +183,65 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     /**
      * Evaluates the channel and datapoint for this channelUID and updates the state of the channel.
      */
-    // private void updateChannelState(ChannelUID channelUID)
-    // throws BridgeHandlerNotAvailableException, SmartThingsClientException, IOException, ConverterException {
-    // SmartThingsService gateway = getSmartThingsGateway();
-    // HmDatapointInfo dpInfo = UidUtils.createHmDatapointInfo(channelUID);
-    // HmDatapoint dp = gateway.getDatapoint(dpInfo);
-    // Channel channel = getThing().getChannel(channelUID.getId());
-    // updateChannelState(dp, channel);
-    // }
+    private void updateChannelState(ChannelUID channelUID, Device device) {
+
+        Channel channel = getThing().getChannel(channelUID.getId());
+        boolean isChannelLinked = isLinked(channel);
+        if (isChannelLinked) {
+            State state = getChannelStateFromDevice(channelUID, device);
+            updateState(channel.getUID(), state);
+        }
+    }
+
+    private State getChannelStateFromDevice(ChannelUID channelUID, Device device) {
+        State state = null;
+        String channelId = channelUID.getId();
+        String attributeName = channelId.substring(channelId.lastIndexOf('_') + 1);
+        CurrentValue currentValue = device.getCurrentValueMap().get(attributeName);
+
+        Channel channel = getThing().getChannel(channelUID.getId());
+
+        String itemType = channel.getAcceptedItemType();
+        if (currentValue.getValue() == null) {
+            return UnDefType.NULL;
+        }
+        String currentValueString = currentValue.getValue().toString();
+        switch (itemType) {
+            case ITEM_TYPE_NUMBER:
+                // if (currentValue.getUnit().equals("%")) {
+                // return new PercentType(new BigDecimal(currentValueString));
+                // }
+                return new DecimalType(new BigDecimal(currentValueString));
+            case ITEM_TYPE_STRING:
+                return new StringType(currentValueString);
+            case ITEM_TYPE_SWITCH:
+                return valueToSwitchType(currentValueString);
+            case ITEM_TYPE_DIMMER:
+                return new PercentType(new BigDecimal(currentValueString));
+            case ITEM_TYPE_CONTACT:
+                return valueToContactType(currentValueString);
+        }
+
+        return state;
+    }
+
+    private OnOffType valueToSwitchType(String value) {
+        String stringValue = value.toLowerCase();
+        List<String> onValues = Arrays.asList("on", "true", "open");
+        if (onValues.contains(stringValue)) {
+            return OnOffType.ON;
+        }
+        return OnOffType.OFF;
+    }
+
+    private OpenClosedType valueToContactType(String value) {
+        String stringValue = value.toLowerCase();
+        List<String> onValues = Arrays.asList("closed");
+        if (onValues.contains(stringValue)) {
+            return OpenClosedType.CLOSED;
+        }
+        return OpenClosedType.OPEN;
+    }
 
     // /**
     // * Sets the configuration or evaluates the channel for this datapoint and updates the state of the channel.
@@ -204,23 +269,6 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     // // ignore
     // } catch (Exception ex) {
     // logger.error(ex.getMessage(), ex);
-    // }
-    // }
-
-    // /**
-    // * Converts the value of the datapoint to a State, updates the channel and also sets the thing status if
-    // necessary.
-    // */
-    // private void updateChannelState(final HmDatapoint dp, Channel channel)
-    // throws IOException, BridgeHandlerNotAvailableException, ConverterException {
-    //
-    // boolean isChannelLinked = isLinked(channel);
-    // if (isChannelLinked) {
-    // loadSmartThingsChannelValues(dp.getChannel());
-    //
-    // TypeConverter<?> converter = ConverterFactory.createConverter(channel.getAcceptedItemType());
-    // State state = converter.convertFromBinding(dp);
-    // updateState(channel.getUID(), state);
     // }
     // }
 
