@@ -160,23 +160,29 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         gateway = new SmartThingsService(config.clientId, config.token);
 
         registerDeviceDiscoveryService();
-        scheduler.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                discoveryService.startScan(null);
-                discoveryService.waitForScanFinishing();
-                updateStatus(ThingStatus.ONLINE);
-                for (Thing hmThing : getThing().getThings()) {
-                    hmThing.getHandler().thingUpdated(hmThing);
-                }
-            }
-        });
+        // scheduler.submit(new Runnable() {
+        //
+        // @Override
+        // public void run() {
+        // discoveryService.startScan(null);
+        // discoveryService.waitForScanFinishing();
+        // updateStatus(ThingStatus.ONLINE);
+        // for (Thing hmThing : getThing().getThings()) {
+        // hmThing.getHandler().thingUpdated(hmThing);
+        // }
+        // }
+        // });
 
         try {
             List<Device> devices = gateway.getDevices();
             if (devices == null || devices.size() == 0) {
                 throw new RuntimeException("No Devices Authorized");
+            }
+            for (Device device : devices) {
+                onDeviceLoaded(device);
+            }
+            for (Thing hmThing : getThing().getThings()) {
+                ((SmartThingsThingHandler)hmThing.getHandler()).thingDefinitionLoaded();
             }
             updateStatus(ThingStatus.ONLINE);
         } catch (Exception ex) {
