@@ -34,6 +34,7 @@ import org.openhab.binding.smartthings.client.SmartThingsService;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.openhab.binding.smartthings.discovery2.SmartThingsDeviceDiscoveryService;
+import org.openhab.binding.smartthings.type.SmartThingsTransformProvider;
 //import org.openhab.binding.smartthings.internal.common.SmartThingsConfig;
 //import org.openhab.binding.smartthings.internal.communicator.SmartThingsGateway;
 //import org.openhab.binding.smartthings.internal.communicator.SmartThingsGatewayFactory;
@@ -68,10 +69,13 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
 
     private SmartThingsDeviceDiscoveryService discoveryService;
     private ServiceRegistration<?> discoveryServiceRegistration;
+    private SmartThingsTransformProvider transformProvider;
 
-    public SmartThingsBridgeHandler(Bridge bridge, SmartThingsTypeGenerator typeGenerator) {
+    public SmartThingsBridgeHandler(Bridge bridge, SmartThingsTypeGenerator typeGenerator,
+            SmartThingsTransformProvider transformProvider) {
         super(bridge);
         this.typeGenerator = typeGenerator;
+        this.transformProvider = transformProvider;
     }
 
     @Override
@@ -182,7 +186,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
                 onDeviceLoaded(device);
             }
             for (Thing hmThing : getThing().getThings()) {
-                ((SmartThingsThingHandler)hmThing.getHandler()).thingDefinitionLoaded();
+                ((SmartThingsThingHandler) hmThing.getHandler()).thingDefinitionLoaded();
             }
             updateStatus(ThingStatus.ONLINE);
         } catch (Exception ex) {
@@ -307,6 +311,10 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         return gateway;
     }
 
+    public SmartThingsTransformProvider getTransformProvider() {
+        return transformProvider;
+    }
+
     /**
      * Updates the thing for the given SmartThings device.
      */
@@ -370,6 +378,7 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
      * {@inheritDoc}
      */
     public void onDeviceLoaded(Device device) {
+        transformProvider.registerDevice(device);
         typeGenerator.generate(device);
         if (discoveryService != null) {
             discoveryService.deviceDiscovered(device);

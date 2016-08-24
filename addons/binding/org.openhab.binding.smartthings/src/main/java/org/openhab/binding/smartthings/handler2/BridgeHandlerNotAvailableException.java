@@ -13,7 +13,7 @@ package org.openhab.binding.smartthings.handler2;
  *
  * @author Gerhard Riegler - Initial contribution
  */
-public class BridgeHandlerNotAvailableException extends Exception {
+public class BridgeHandlerNotAvailableException extends RuntimeException {
     private static final long serialVersionUID = 95628391238530L;
 
     public BridgeHandlerNotAvailableException(String message) {

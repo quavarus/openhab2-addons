@@ -8,19 +8,9 @@
  */
 package org.openhab.binding.smartthings.handler2;
 
-import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.smarthome.config.core.Configuration;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.OpenClosedType;
-import org.eclipse.smarthome.core.library.types.PercentType;
-import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -29,11 +19,10 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.smartthings.client.SmartThingsClientException;
 import org.openhab.binding.smartthings.client.SmartThingsService;
-import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.type.SmartThingsTransformer;
 import org.openhab.binding.smartthings.type.UidUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +136,13 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         logger.debug("Received command '{}' for channel '{}'", command, channelUID);
         // HmDatapoint dp = null;
         // try {
-        // SmartThingsGateway gateway = getSmartThingsGateway();
+        Channel channel = getThing().getChannel(channelUID.getId());
+        SmartThingsTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
+        String commandName = transformer.getCommand(channel, command);
+        String commandArguments = transformer.getArguments(channel, command);
+        SmartThingsService gateway = getSmartThingsGateway();
+        // gateway.runDeviceCommand(thing.getUID().getId(), commandName, commandArguments);
+
         // HmDatapointInfo dpInfo = UidUtils.createHmDatapointInfo(channelUID);
         // if (RefreshType.REFRESH == command) {
         // logger.debug("Refreshing {}", dpInfo);
@@ -199,56 +194,10 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         Channel channel = getThing().getChannel(channelUID.getId());
         boolean isChannelLinked = isLinked(channel);
         if (isChannelLinked) {
-            State state = getChannelStateFromDevice(channelUID, device);
+            SmartThingsTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
+            State state = transformer.getChannelState(channel, device);
             updateState(channel.getUID(), state);
         }
-    }
-
-    private State getChannelStateFromDevice(ChannelUID channelUID, Device device) {
-        State state = null;
-        String channelId = channelUID.getId();
-        String attributeName = channelId.substring(channelId.lastIndexOf('_') + 1);
-        CurrentValue currentValue = device.getCurrentValueMap().get(attributeName);
-
-        Channel channel = getThing().getChannel(channelUID.getId());
-
-        String itemType = channel.getAcceptedItemType();
-        if (currentValue.getValue() == null) {
-            return UnDefType.NULL;
-        }
-        String currentValueString = currentValue.getValue().toString();
-        switch (itemType) {
-            case ITEM_TYPE_NUMBER:
-                return new DecimalType(new BigDecimal(currentValueString));
-            case ITEM_TYPE_STRING:
-                return new StringType(currentValueString);
-            case ITEM_TYPE_SWITCH:
-                return valueToSwitchType(currentValueString);
-            case ITEM_TYPE_DIMMER:
-                return new PercentType(new BigDecimal(currentValueString));
-            case ITEM_TYPE_CONTACT:
-                return valueToContactType(currentValueString);
-        }
-
-        return state;
-    }
-
-    private OnOffType valueToSwitchType(String value) {
-        String stringValue = value.toLowerCase();
-        List<String> onValues = Arrays.asList("on", "true", "open");
-        if (onValues.contains(stringValue)) {
-            return OnOffType.ON;
-        }
-        return OnOffType.OFF;
-    }
-
-    private OpenClosedType valueToContactType(String value) {
-        String stringValue = value.toLowerCase();
-        List<String> onValues = Arrays.asList("closed");
-        if (onValues.contains(stringValue)) {
-            return OpenClosedType.CLOSED;
-        }
-        return OpenClosedType.OPEN;
     }
 
     // /**
@@ -358,19 +307,29 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     // return dpConfig;
     // }
 
+    private SmartThingsBridgeHandler getBridgeHandler() {
+        SmartThingsBridgeHandler bridgeHandler = null;
+        if (getBridge() != null) {
+            bridgeHandler = ((SmartThingsBridgeHandler) getBridge().getHandler());
+        }
+        if (bridgeHandler == null) {
+            throw new BridgeHandlerNotAvailableException("BridgeHandler not yet available!");
+        }
+        return bridgeHandler;
+    }
+
     /**
      * Returns the SmartThings gateway if the bridge is available.
      */
     private SmartThingsService getSmartThingsGateway() throws BridgeHandlerNotAvailableException {
-        if (getBridge() == null || getBridge().getHandler() == null
-                || ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway() == null) {
+        if (getBridgeHandler().getGateway() == null) {
             if (thing.getStatus() != ThingStatus.INITIALIZING) {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_MISSING_ERROR);
             }
             throw new BridgeHandlerNotAvailableException("BridgeHandler not yet available!");
         }
 
-        return ((SmartThingsBridgeHandler) getBridge().getHandler()).getGateway();
+        return getBridgeHandler().getGateway();
     }
 
     public void thingDefinitionLoaded() {

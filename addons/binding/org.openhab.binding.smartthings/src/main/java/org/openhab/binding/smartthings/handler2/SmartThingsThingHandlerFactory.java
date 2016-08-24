@@ -15,6 +15,7 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
+import org.openhab.binding.smartthings.type.SmartThingsTransformProvider;
 import org.openhab.binding.smartthings.type.SmartThingsTypeGenerator;
 
 /**
@@ -24,6 +25,7 @@ import org.openhab.binding.smartthings.type.SmartThingsTypeGenerator;
  */
 public class SmartThingsThingHandlerFactory extends BaseThingHandlerFactory {
     private SmartThingsTypeGenerator typeGenerator;
+    private SmartThingsTransformProvider transformProvider;
 
     protected void setTypeGenerator(SmartThingsTypeGenerator typeGenerator) {
         this.typeGenerator = typeGenerator;
@@ -31,6 +33,14 @@ public class SmartThingsThingHandlerFactory extends BaseThingHandlerFactory {
 
     protected void unsetTypeGenerator(SmartThingsTypeGenerator typeGenerator) {
         this.typeGenerator = null;
+    }
+
+    protected void setTransformProvider(SmartThingsTransformProvider transformProvider) {
+        this.transformProvider = transformProvider;
+    }
+
+    protected void unsetTransformProvider(SmartThingsTransformProvider transformProvider) {
+        this.transformProvider = null;
     }
 
     /**
@@ -47,7 +57,7 @@ public class SmartThingsThingHandlerFactory extends BaseThingHandlerFactory {
     @Override
     protected ThingHandler createHandler(Thing thing) {
         if (THING_TYPE_BRIDGE.equals(thing.getThingTypeUID())) {
-            return new SmartThingsBridgeHandler((Bridge) thing, typeGenerator);
+            return new SmartThingsBridgeHandler((Bridge) thing, typeGenerator, transformProvider);
         } else {
             return new SmartThingsThingHandler(thing);
         }

@@ -54,6 +54,8 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
     private SmartThingsConfigDescriptionProvider configDescriptionProvider;
     private Map<String, Set<String>> firmwaresByType = new HashMap<String, Set<String>>();
 
+    private SmartThingsTransformProvider transformProvider;
+
     // private static final String[] STATUS_DATAPOINT_NAMES = new String[] { DATAPOINT_NAME_UNREACH,
     // DATAPOINT_NAME_CONFIG_PENDING, DATAPOINT_NAME_DEVICE_IN_BOOTLOADER, DATAPOINT_NAME_UPDATE_PENDING };
     //
@@ -75,6 +77,14 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
 
     protected void unsetThingTypeProvider(SmartThingsThingTypeProvider thingTypeProvider) {
         this.thingTypeProvider = null;
+    }
+
+    protected void setTransformProvider(SmartThingsTransformProvider transformProvider) {
+        this.transformProvider = transformProvider;
+    }
+
+    protected void unsetTransformProvider(SmartThingsTransformProvider transformProvider) {
+        this.transformProvider = null;
     }
 
     protected void setChannelTypeProvider(SmartThingsChannelTypeProvider channelTypeProvider) {
@@ -107,24 +117,38 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             // if the device is an actuator we need to map it some control channel
             List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
             for (Capability capability : device.getCapabilities()) {
-
-                if (capability.getAttributes() != null) {
-                    for (Attribute attribute : capability.getAttributes()) {
-                        ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(),
-                                attribute.getName());
-                        ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID,
-                                Locale.getDefault());
-                        if (channelType == null) {
-                            channelType = createChannelType(channelTypeUID, capability, attribute);
-                            channelTypeProvider.addChannelType(channelType);
-                        }
-
-                        ChannelDefinition channelDef = new ChannelDefinition(
-                                UidUtils.sanitizeStringId(capability.getName() + "_" + attribute.getName()),
-                                channelType.getUID(), null, channelType.getLabel(), channelType.getDescription());
-                        channelDefinitions.add(channelDef);
+                SmartThingsTransformer transformer = transformProvider.getTransformer(capability);
+                List<ChannelType> channelTypes = transformer.getChannelTypes();
+                for (ChannelType channelType : channelTypes) {
+                    ChannelType registeredType = channelTypeProvider.getChannelType(channelType.getUID(),
+                            Locale.getDefault());
+                    if (registeredType == null) {
+                        channelTypeProvider.addChannelType(channelType);
+                        registeredType = channelType;
                     }
+                    ChannelDefinition channelDef = new ChannelDefinition(
+                            UidUtils.sanitizeStringId(registeredType.getUID().getId()), registeredType.getUID(), null,
+                            registeredType.getLabel(), registeredType.getDescription());
+                    channelDefinitions.add(channelDef);
                 }
+
+                // if (capability.getAttributes() != null) {
+                // for (Attribute attribute : capability.getAttributes()) {
+                // ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(),
+                // attribute.getName());
+                // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID,
+                // Locale.getDefault());
+                // if (channelType == null) {
+                // channelType = createChannelType(channelTypeUID, capability, attribute);
+                // channelTypeProvider.addChannelType(channelType);
+                // }
+                //
+                // ChannelDefinition channelDef = new ChannelDefinition(
+                // UidUtils.sanitizeStringId(capability.getName() + "_" + attribute.getName()),
+                // channelType.getUID(), null, channelType.getLabel(), channelType.getDescription());
+                // channelDefinitions.add(channelDef);
+                // }
+                // }
             }
 
             // generate group

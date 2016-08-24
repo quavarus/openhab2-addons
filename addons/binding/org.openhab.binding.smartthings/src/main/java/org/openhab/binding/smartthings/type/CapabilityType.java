@@ -1,4 +1,4 @@
-package org.openhab.binding.smartthings.handler2.transform;
+package org.openhab.binding.smartthings.type;
 
 public enum CapabilityType {
 

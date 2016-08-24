@@ -14,5 +14,6 @@
    </service>
 
    <reference bind="setTypeGenerator" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsTypeGenerator" name="TypeGenerator" policy="static" unbind="unsetTypeGenerator"/>
+   <reference bind="setTransformProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsTransformProvider" name="SmartThingsTransformProvider" policy="dynamic" unbind="unsetTransformProvider"/>
 
 </scr:component>

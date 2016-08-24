@@ -16,5 +16,6 @@
    <reference bind="setThingTypeProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsThingTypeProvider" name="ThingTypeProvider" policy="dynamic" unbind="unsetThingTypeProvider"/>
    <reference bind="setChannelTypeProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsChannelTypeProvider" name="ChannelTypeProvider" policy="dynamic" unbind="unsetChannelTypeProvider"/>
    <reference bind="setConfigDescriptionProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsConfigDescriptionProvider" name="ConfigDescriptionProvider" policy="dynamic" unbind="unsetConfigDescriptionProvider"/>
+   <reference bind="setTransformProvider" cardinality="1..1" interface="org.openhab.binding.smartthings.type.SmartThingsTransformProvider" name="SmartThingsTransformProvider" policy="dynamic" unbind="unsetTransformProvider"/>
 
 </scr:component>
