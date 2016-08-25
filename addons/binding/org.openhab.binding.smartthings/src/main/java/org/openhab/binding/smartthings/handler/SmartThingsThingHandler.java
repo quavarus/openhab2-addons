@@ -22,8 +22,8 @@ import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.smartthings.client.SmartThingsClientException;
 import org.openhab.binding.smartthings.client.SmartThingsService;
 import org.openhab.binding.smartthings.client.model.Device;
-import org.openhab.binding.smartthings.type.SmartThingsTransformer;
 import org.openhab.binding.smartthings.type.UidUtils;
+import org.openhab.binding.smartthings.type.transform.CapabilityTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +137,7 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         // HmDatapoint dp = null;
         // try {
         Channel channel = getThing().getChannel(channelUID.getId());
-        SmartThingsTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
+        CapabilityTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
         String commandName = transformer.getCommand(channel, command);
         String commandArguments = transformer.getArguments(channel, command);
         SmartThingsService gateway = getSmartThingsGateway();
@@ -194,7 +194,7 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         Channel channel = getThing().getChannel(channelUID.getId());
         boolean isChannelLinked = isLinked(channel);
         if (isChannelLinked) {
-            SmartThingsTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
+            CapabilityTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
             State state = transformer.getChannelState(channel, device);
             updateState(channel.getUID(), state);
         }

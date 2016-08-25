@@ -37,6 +37,7 @@ import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.smartthings.client.model.Attribute;
 import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.type.transform.CapabilityTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +118,7 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             // if the device is an actuator we need to map it some control channel
             List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
             for (Capability capability : device.getCapabilities()) {
-                SmartThingsTransformer transformer = transformProvider.getTransformer(capability);
+                CapabilityTransformer transformer = transformProvider.getTransformer(capability);
                 List<ChannelType> channelTypes = transformer.getChannelTypes();
                 for (ChannelType channelType : channelTypes) {
                     ChannelType registeredType = channelTypeProvider.getChannelType(channelType.getUID(),

@@ -1,4 +1,4 @@
-package org.openhab.binding.smartthings.type;
+package org.openhab.binding.smartthings.type.transform;
 
 import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
 
@@ -38,21 +38,22 @@ import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Command;
 import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.type.UidUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultTransformer implements SmartThingsTransformer {
+public class DefaultCapabilityTransformer implements CapabilityTransformer {
 
     public static final String CONFIG_DESCRIPTION_URI_CHANNEL = "channel-type:smartthings:config";
     private URI configDescriptionUriChannel;
     private Capability capability;
-    private static final Logger logger = LoggerFactory.getLogger(DefaultTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultCapabilityTransformer.class);
 
     private Map<String, String> keyItemTypeMap = new HashMap<>();
     private Map<String, String> keyCategoryMap = new HashMap<>();
     private Map<String, String> attributeCommandMap = new HashMap<>();
 
-    public DefaultTransformer(Capability capability) {
+    public DefaultCapabilityTransformer(Capability capability) {
         this.capability = capability;
         try {
             configDescriptionUriChannel = new URI(CONFIG_DESCRIPTION_URI_CHANNEL);

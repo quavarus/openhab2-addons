@@ -6,20 +6,22 @@ import java.util.Map;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.type.transform.DefaultCapabilityTransformer;
+import org.openhab.binding.smartthings.type.transform.CapabilityTransformer;
 
 public class SmartThingsTransformProvider {
 
-    private Map<String, SmartThingsTransformer> capabilityTransformerMap = new HashMap<>();
+    private Map<String, CapabilityTransformer> capabilityTransformerMap = new HashMap<>();
 
     public SmartThingsTransformProvider() {
 
     }
 
-    public SmartThingsTransformer getTransformer(Capability capability) {
+    public CapabilityTransformer getTransformer(Capability capability) {
         return capabilityTransformerMap.get(capability.getName());
     }
 
-    public SmartThingsTransformer getTransformer(Channel channel) {
+    public CapabilityTransformer getTransformer(Channel channel) {
         String id = channel.getChannelTypeUID().getId();
         String capabilityName = id.substring(0, id.lastIndexOf("_"));
         capabilityName = capabilityName.replaceAll("_", " ");
@@ -34,7 +36,7 @@ public class SmartThingsTransformProvider {
     }
 
     private void registerCapability(Capability capability) {
-        capabilityTransformerMap.put(capability.getName(), new DefaultTransformer(capability));
+        capabilityTransformerMap.put(capability.getName(), new DefaultCapabilityTransformer(capability));
     }
 
 }
