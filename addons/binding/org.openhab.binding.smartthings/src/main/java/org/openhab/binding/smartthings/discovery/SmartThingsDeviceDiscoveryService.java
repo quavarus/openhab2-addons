@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.smartthings.discovery2;
+package org.openhab.binding.smartthings.discovery;
 
 import static org.openhab.binding.smartthings.SmartThingsBindingConstants.BINDING_ID;
 
@@ -19,7 +19,7 @@ import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.openhab.binding.smartthings.client.model.Device;
-import org.openhab.binding.smartthings.handler2.SmartThingsBridgeHandler;
+import org.openhab.binding.smartthings.handler.SmartThingsBridgeHandler;
 import org.openhab.binding.smartthings.type.UidUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

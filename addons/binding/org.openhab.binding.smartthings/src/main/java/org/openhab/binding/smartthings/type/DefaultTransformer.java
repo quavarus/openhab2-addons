@@ -10,14 +10,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.HSBType;
+import org.eclipse.smarthome.core.library.types.IncreaseDecreaseType;
+import org.eclipse.smarthome.core.library.types.NextPreviousType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.OpenClosedType;
 import org.eclipse.smarthome.core.library.types.PercentType;
+import org.eclipse.smarthome.core.library.types.PlayPauseType;
+import org.eclipse.smarthome.core.library.types.PointType;
+import org.eclipse.smarthome.core.library.types.RewindFastforwardType;
+import org.eclipse.smarthome.core.library.types.StopMoveType;
+import org.eclipse.smarthome.core.library.types.StringListType;
 import org.eclipse.smarthome.core.library.types.StringType;
+import org.eclipse.smarthome.core.library.types.UpDownType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.type.ChannelType;
 import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
+import org.eclipse.smarthome.core.types.RefreshType;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.StateDescription;
 import org.eclipse.smarthome.core.types.StateOption;
@@ -305,8 +316,97 @@ public class DefaultTransformer implements SmartThingsTransformer {
 
     @Override
     public String getCommand(Channel channel, org.eclipse.smarthome.core.types.Command command) {
-
+        Object value = getCommandValue(command);
+        Map<String, String> potentials = getPotentialCommands(channel);
+        if (potentials.size() == 1) {
+            return potentials.values().iterator().next();
+        }
+        if (value instanceof String) {
+            String searchKey = channel.getUID().getId() + "_" + value;
+            if (potentials.containsKey(searchKey)) {
+                return potentials.get(searchKey);
+            }
+        }
         return null;
+    }
+
+    private Map<String, String> getPotentialCommands(Channel channel) {
+        String searchKey = channel.getUID().getId();
+        Map<String, String> potentials = new HashMap<>();
+        for (String key : attributeCommandMap.keySet()) {
+            if (key.startsWith(searchKey)) {
+                potentials.put(key, attributeCommandMap.get(key));
+            }
+        }
+        return potentials;
+    }
+
+    private Object getCommandValue(org.eclipse.smarthome.core.types.Command command) {
+        if (command instanceof DateTimeType) {
+            DateTimeType typedCommand = (DateTimeType) command;
+            return typedCommand.getCalendar().getTime();
+        }
+        if (command instanceof DecimalType) {
+            DecimalType typedCommand = (DecimalType) command;
+            return typedCommand.toBigDecimal();
+        }
+        if (command instanceof HSBType) {
+            HSBType typedCommand = (HSBType) command;
+            return typedCommand.getRGB();
+        }
+        if (command instanceof IncreaseDecreaseType) {
+            IncreaseDecreaseType typedCommand = (IncreaseDecreaseType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof NextPreviousType) {
+            NextPreviousType typedCommand = (NextPreviousType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof OnOffType) {
+            OnOffType typedCommand = (OnOffType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof OpenClosedType) {
+            OpenClosedType typedCommand = (OpenClosedType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof PercentType) {
+            PercentType typedCommand = (PercentType) command;
+            return typedCommand.toBigDecimal();
+        }
+        if (command instanceof PlayPauseType) {
+            PlayPauseType typedCommand = (PlayPauseType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof PointType) {
+            PointType typedCommand = (PointType) command;
+            return typedCommand;
+        }
+        if (command instanceof RefreshType) {
+            RefreshType typedCommand = (RefreshType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof RewindFastforwardType) {
+            RewindFastforwardType typedCommand = (RewindFastforwardType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof StopMoveType) {
+            StopMoveType typedCommand = (StopMoveType) command;
+            return typedCommand.name();
+        }
+        if (command instanceof StringListType) {
+            StringListType typedCommand = (StringListType) command;
+            return typedCommand.toString();
+        }
+        if (command instanceof StringType) {
+            StringType typedCommand = (StringType) command;
+            return typedCommand.toString();
+        }
+        if (command instanceof UpDownType) {
+            UpDownType typedCommand = (UpDownType) command;
+            return typedCommand.name();
+        }
+        throw new UnsupportedOperationException("Command type is unsupported. " + command.getClass().getName());
     }
 
     @Override

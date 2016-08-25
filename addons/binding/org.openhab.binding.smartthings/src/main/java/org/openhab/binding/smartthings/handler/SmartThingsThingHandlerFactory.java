@@ -6,7 +6,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.openhab.binding.smartthings.handler2;
+package org.openhab.binding.smartthings.handler;
 
 import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
 
