@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import org.openhab.binding.smartthings.client.model.Attribute;
 import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.type.transform.CapabilityTransformer;
+import org.openhab.binding.smartthings.type.transform.ChannelTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,8 +121,9 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
             for (Capability capability : device.getCapabilities()) {
                 CapabilityTransformer transformer = transformProvider.getTransformer(capability);
-                List<ChannelType> channelTypes = transformer.getChannelTypes();
-                for (ChannelType channelType : channelTypes) {
+                Collection<ChannelTransformer> channelTransformers = transformer.getChannelTransformers();
+                for (ChannelTransformer channelTransform : channelTransformers) {
+                    ChannelType channelType = channelTransform.getChannelType();
                     ChannelType registeredType = channelTypeProvider.getChannelType(channelType.getUID(),
                             Locale.getDefault());
                     if (registeredType == null) {

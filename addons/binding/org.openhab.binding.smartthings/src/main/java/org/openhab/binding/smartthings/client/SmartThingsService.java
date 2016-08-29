@@ -1,9 +1,11 @@
 package org.openhab.binding.smartthings.client;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.client.model.DeviceCommand;
 import org.openhab.binding.smartthings.client.model.Endpoint;
 
 import okhttp3.Interceptor;
@@ -88,7 +90,12 @@ public class SmartThingsService {
     }
 
     public Device runDeviceCommand(String deviceId, String command, String... arugments) {
-        return executeCall(getSmartAppApi().runDeviceCommand(deviceId, command));
+        return runDeviceCommand(deviceId, new DeviceCommand(command, arugments));
+    }
+
+    public Device runDeviceCommand(String id, DeviceCommand deviceCommand) {
+        return executeCall(getSmartAppApi().runDeviceCommand(id, Arrays.asList(deviceCommand)));
+
     }
 
 }
