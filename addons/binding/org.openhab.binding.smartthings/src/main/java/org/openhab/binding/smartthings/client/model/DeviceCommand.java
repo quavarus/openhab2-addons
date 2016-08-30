@@ -3,9 +3,9 @@ package org.openhab.binding.smartthings.client.model;
 public class DeviceCommand {
 
     private final String name;
-    private final String[] arguments;
+    private final Object[] arguments;
 
-    public DeviceCommand(String name, String... arguments) {
+    public DeviceCommand(String name, Object... arguments) {
         super();
         this.name = name;
         this.arguments = arguments;
@@ -15,7 +15,7 @@ public class DeviceCommand {
         return name;
     }
 
-    public String[] getArguments() {
+    public Object[] getArguments() {
         return arguments;
     }
 

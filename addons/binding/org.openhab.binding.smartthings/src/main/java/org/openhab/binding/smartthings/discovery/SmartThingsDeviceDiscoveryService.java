@@ -28,9 +28,9 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * The {@link SmartThingsDeviceDiscoveryService} is used to discover devices that are connected to a SmartThings
- * gateway.
+ * hub.
  *
- * @author Gerhard Riegler - Initial contribution
+ * @author Joshua Henry - Initial contribution
  */
 public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService {
     private static final Logger logger = LoggerFactory.getLogger(SmartThingsDeviceDiscoveryService.class);
@@ -74,7 +74,6 @@ public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService 
     @Override
     public synchronized void stopScan() {
         logger.debug("Stopping SmartThings discovery scan");
-        // bridgeHandler.getGateway().cancelLoadAllDeviceMetadata();
         waitForScanFinishing();
         super.stopScan();
     }
@@ -84,7 +83,7 @@ public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService 
      */
     public void waitForScanFinishing() {
         if (scanFuture != null) {
-            logger.debug("Waiting for finishing SmartThings device discovery scan");
+            logger.debug("Waiting for SmartThings device discovery scan to finish");
             try {
                 scanFuture.get();
                 logger.debug("SmartThings device discovery scan finished");
@@ -106,15 +105,15 @@ public class SmartThingsDeviceDiscoveryService extends AbstractDiscoveryService 
                 @Override
                 public void run() {
                     try {
-                        for (Device device : bridgeHandler.getGateway().getDevices()) {
-                            bridgeHandler.onDeviceLoaded(device);
+                        for (Device device : bridgeHandler.getDevices()) {
+                            bridgeHandler.registerDevice(device);
+                            deviceDiscovered(device);
                         }
                         logger.debug("Finished SmartThings device discovery scan on gateway");
                     } catch (Throwable ex) {
                         logger.error(ex.getMessage(), ex);
                     } finally {
                         scanFuture = null;
-                        bridgeHandler.setOfflineStatus();
                         removeOlderResults(getTimestampOfLastScan());
                     }
                 }

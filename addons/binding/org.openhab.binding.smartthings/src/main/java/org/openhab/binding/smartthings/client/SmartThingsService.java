@@ -89,7 +89,7 @@ public class SmartThingsService {
         return device;
     }
 
-    public Device runDeviceCommand(String deviceId, String command, String... arugments) {
+    public Device runDeviceCommand(String deviceId, String command, Object... arugments) {
         return runDeviceCommand(deviceId, new DeviceCommand(command, arugments));
     }
 

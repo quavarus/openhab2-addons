@@ -8,8 +8,11 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -29,9 +32,9 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
-import org.openhab.binding.smartthings.client.SmartThingsClientException;
 import org.openhab.binding.smartthings.client.SmartThingsService;
 import org.openhab.binding.smartthings.client.model.Device;
+import org.openhab.binding.smartthings.client.model.DeviceCommand;
 import org.openhab.binding.smartthings.config.SmartThingsBridgeConfiguration;
 import org.openhab.binding.smartthings.discovery.SmartThingsDeviceDiscoveryService;
 import org.openhab.binding.smartthings.type.SmartThingsTransformProvider;
@@ -44,7 +47,6 @@ import org.openhab.binding.smartthings.type.SmartThingsTransformProvider;
 //import org.openhab.binding.smartthings.internal.model.HmDatapoint;
 //import org.openhab.binding.smartthings.internal.model.HmDevice;
 import org.openhab.binding.smartthings.type.SmartThingsTypeGenerator;
-import org.openhab.binding.smartthings.type.UidUtils;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +59,6 @@ import org.slf4j.LoggerFactory;
 public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private static final Logger logger = LoggerFactory.getLogger(SmartThingsBridgeHandler.class);
     private static final long REINITIALIZE_DELAY_SECONDS = 10;
-    // private static SimplePortPool portPool = new SimplePortPool();
 
     private final String authorizeUrl = "https://graph.api.smartthings.com/oauth/authorize";
     private final String redirectUrl = "http://www.openhab.org/oauth/smartthings";
@@ -70,6 +71,8 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     private SmartThingsDeviceDiscoveryService discoveryService;
     private ServiceRegistration<?> discoveryServiceRegistration;
     private SmartThingsTransformProvider transformProvider;
+
+    private Map<String, Device> activeDevices = new HashMap<>();
 
     public SmartThingsBridgeHandler(Bridge bridge, SmartThingsTypeGenerator typeGenerator,
             SmartThingsTransformProvider transformProvider) {
@@ -164,37 +167,38 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         gateway = new SmartThingsService(config.clientId, config.token);
 
         registerDeviceDiscoveryService();
-        // scheduler.submit(new Runnable() {
-        //
-        // @Override
-        // public void run() {
-        // discoveryService.startScan(null);
-        // discoveryService.waitForScanFinishing();
-        // updateStatus(ThingStatus.ONLINE);
-        // for (Thing hmThing : getThing().getThings()) {
-        // hmThing.getHandler().thingUpdated(hmThing);
-        // }
-        // }
-        // });
 
         try {
-            List<Device> devices = gateway.getDevices();
-            if (devices == null || devices.size() == 0) {
+            refreshActiveDevices();
+            if (activeDevices.size() == 0) {
                 throw new RuntimeException("No Devices Authorized");
             }
-            for (Device device : devices) {
-                onDeviceLoaded(device);
+            for (Device device : activeDevices.values()) {
+                registerDevice(device);
             }
             for (Thing hmThing : getThing().getThings()) {
-                ((SmartThingsThingHandler) hmThing.getHandler()).thingDefinitionLoaded();
+                ((SmartThingsThingHandler) hmThing.getHandler()).update();
             }
             updateStatus(ThingStatus.ONLINE);
+            schedulePollingUpdates();
         } catch (Exception ex) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
             dispose();
             scheduleReinitialize();
         }
 
+    }
+
+    private Boolean deviceUpdateLock = false;
+
+    public void refreshActiveDevices() {
+        synchronized (deviceUpdateLock) {
+            this.activeDevices.clear();
+            List<Device> devices = gateway.getDevices();
+            for (Device device : devices) {
+                activeDevices.put(device.getId(), device);
+            }
+        }
     }
 
     /**
@@ -210,6 +214,17 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         }, REINITIALIZE_DELAY_SECONDS, TimeUnit.SECONDS);
     }
 
+    private void schedulePollingUpdates() {
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+                reloadAllDeviceValues();
+            }
+
+        }, 0, REINITIALIZE_DELAY_SECONDS, TimeUnit.SECONDS);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -220,12 +235,6 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         if (discoveryService != null) {
             discoveryService.stopScan();
             unregisterDeviceDiscoveryService();
-        }
-        // if (gateway != null) {
-        // gateway.dispose();
-        // }
-        if (config != null) {
-            // portPool.release(config.getCallbackPort());
         }
     }
 
@@ -256,32 +265,11 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
     }
 
     /**
-     * Sets the OFFLINE status for all things of this bridge that has been removed from the gateway.
-     */
-    public void setOfflineStatus() {
-        for (Thing hmThing : getThing().getThings()) {
-            try {
-                gateway.getDevice(UidUtils.getSmartThingsDeviceId(hmThing));
-            } catch (SmartThingsClientException e) {
-                ((SmartThingsThingHandler) hmThing.getHandler()).updateStatus(ThingStatus.OFFLINE);
-            }
-        }
-    }
-
-    /**
      * Creates the configuration for the SmartThingsGateway.
      */
     private SmartThingsBridgeConfiguration createSmartThingsConfig() {
         SmartThingsBridgeConfiguration smartthingsConfig = getThing().getConfiguration()
                 .as(SmartThingsBridgeConfiguration.class);
-        // if (smartthingsConfig.getCallbackHost() == null) {
-        // smartthingsConfig.setCallbackHost(LocalNetworkInterface.getLocalNetworkInterface());
-        // }
-        // if (smartthingsConfig.getCallbackPort() == 0) {
-        // smartthingsConfig.setCallbackPort(portPool.getNextPort());
-        // } else {
-        // portPool.setInUse(smartthingsConfig.getCallbackPort());
-        // }
         logger.debug(smartthingsConfig.toString());
         return smartthingsConfig;
     }
@@ -304,107 +292,44 @@ public class SmartThingsBridgeHandler extends BaseBridgeHandler {
         return typeGenerator;
     }
 
-    /**
-     * Returns the SmartThingsGateway.
-     */
-    public SmartThingsService getGateway() {
-        return gateway;
-    }
-
     public SmartThingsTransformProvider getTransformProvider() {
         return transformProvider;
     }
 
-    /**
-     * Updates the thing for the given SmartThings device.
-     */
-    public void updateThing(Device device) {
-        Thing hmThing = getThingByUID(UidUtils.generateThingUID(device, getThing()));
-        if (hmThing != null) {
-            hmThing.getHandler().thingUpdated(hmThing);
-        }
-    }
-
-    // /**
-    // * {@inheritDoc}
-    // */
-    // public void onStateUpdated(Device device, CurrentValue dp) {
-    // Thing hmThing = getThingByUID(UidUtils.generateThingUID(device, getThing()));
-    // if (hmThing != null) {
-    // SmartThingsThingHandler thingHandler = (SmartThingsThingHandler) hmThing.getHandler();
-    // // thingHandler.updateDatapointState(dp);
-    // }
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // public void onNewDevice(Device device) {
-    // onDeviceLoaded(device);
-    // updateThing(device);
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // public void onDeviceDeleted(Device device) {
-    // discoveryService.deviceRemoved(device);
-    // updateThing(device);
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // public void onServerRestart() {
-    // reloadAllDeviceValues();
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // public void onConnectionLost() {
-    // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Connection lost");
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    // public void onConnectionResumed() {
-    // updateStatus(ThingStatus.ONLINE);
-    // reloadAllDeviceValues();
-    // }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void onDeviceLoaded(Device device) {
+    public void registerDevice(Device device) {
         transformProvider.registerDevice(device);
         typeGenerator.generate(device);
-        if (discoveryService != null) {
-            discoveryService.deviceDiscovered(device);
-        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    // @Override
-    public void reloadDeviceValues(Device device) {
-        updateThing(device);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public void reloadAllDeviceValues() {
-        for (Thing hmThing : getThing().getThings()) {
-            try {
-                Device device = gateway.getDevice(UidUtils.getSmartThingsDeviceId(hmThing));
-                reloadDeviceValues(device);
-            } catch (SmartThingsClientException ex) {
-                logger.warn(ex.getMessage());
-            }
+        refreshActiveDevices();
+        if (activeDevices.size() == 0) {
+            throw new RuntimeException("No Devices Authorized");
         }
+        for (Thing hmThing : getThing().getThings()) {
+            ((SmartThingsThingHandler) hmThing.getHandler()).update();
+        }
+    }
+
+    public void runDeviceCommand(String id, DeviceCommand deviceCommand) {
+        Device updatedDevice = gateway.runDeviceCommand(id, deviceCommand);
+        // updateActiveDevice(updatedDevice);
+    }
+
+    private void updateActiveDevice(Device updatedDevice) {
+        synchronized (deviceUpdateLock) {
+            activeDevices.put(updatedDevice.getId(), updatedDevice);
+        }
+    }
+
+    public Device getDevice(String smartThingsDeviceId) {
+        synchronized (deviceUpdateLock) {
+            return activeDevices.get(smartThingsDeviceId);
+        }
+    }
+
+    public Collection<Device> getDevices() {
+        return activeDevices.values();
     }
 
 }

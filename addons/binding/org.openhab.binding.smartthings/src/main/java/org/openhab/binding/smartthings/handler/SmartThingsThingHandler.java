@@ -8,9 +8,6 @@
  */
 package org.openhab.binding.smartthings.handler;
 
-import java.util.Map;
-
-import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -19,8 +16,6 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
-import org.openhab.binding.smartthings.client.SmartThingsClientException;
-import org.openhab.binding.smartthings.client.SmartThingsService;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.client.model.DeviceCommand;
 import org.openhab.binding.smartthings.type.UidUtils;
@@ -31,12 +26,10 @@ import org.slf4j.LoggerFactory;
 /**
  * The {@link SmartThingsThingHandler} is responsible for handling commands, which are sent to one of the channels.
  *
- * @author Gerhard Riegler - Initial contribution
+ * @author Joshua Henry - Initial contribution
  */
 public class SmartThingsThingHandler extends BaseThingHandler {
     private Logger logger = LoggerFactory.getLogger(SmartThingsThingHandler.class);
-
-    private Device device = null;
 
     public SmartThingsThingHandler(Thing thing) {
         super(thing);
@@ -47,72 +40,15 @@ public class SmartThingsThingHandler extends BaseThingHandler {
      */
     @Override
     public void initialize() {
+        logger.debug("Initializing {} channels of thing '{}'", getThing().getChannels().size(), getThing().getUID());
         try {
-            SmartThingsService gateway = getSmartThingsGateway();
-            device = gateway.getDevice(UidUtils.getSmartThingsDeviceId(getThing()));
-            updateStatus(device);
-            if (device != null) {
-                logger.debug("Initializing {} channels of thing '{}'", getThing().getChannels().size(),
-                        getThing().getUID());
-
-                // update channel states
-                // for (Channel channel : getThing().getChannels()) {
-                // updateChannelState(channel.getUID(), device);
-                // }
-
-                // // update properties
-                Map<String, String> properties = editProperties();
-                // setProperty(properties, device, PROPERTY_BATTERY_TYPE, VIRTUAL_DATAPOINT_NAME_BATTERY_TYPE);
-                // setProperty(properties, device, Thing.PROPERTY_FIRMWARE_VERSION, VIRTUAL_DATAPOINT_NAME_FIRMWARE);
-                // setProperty(properties, device, Thing.PROPERTY_SERIAL_NUMBER, device.getAddress());
-                // setProperty(properties, device, PROPERTY_AES_KEY, DATAPOINT_NAME_AES_KEY);
-                updateProperties(properties);
-                //
-                // // update configurations
-                Configuration config = editConfiguration();
-                // for (HmChannel channel : device.getChannels()) {
-                // for (HmDatapoint dp : channel.getDatapoints().values()) {
-                // if (dp.getParamsetType() == HmParamsetType.MASTER) {
-                // loadSmartThingsChannelValues(dp.getChannel());
-                // config.put(MetadataUtils.getParameterName(dp),
-                // dp.isEnumType() ? dp.getOptionValue() : dp.getValue());
-                // }
-                // }
-                // }
-                updateConfiguration(config);
-            }
-        } catch (SmartThingsClientException ex) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, ex.getMessage());
-        }
-        // catch (IOException ex) {
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
-        // }
-        catch (BridgeHandlerNotAvailableException ex) {
-            // ignore
+            updateStatus();
+        } catch (BridgeHandlerNotAvailableException ex) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, ex.getMessage());
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }
     }
-
-    /**
-     * Sets a thing property with a datapoint value.
-     */
-    // private void setProperty(Map<String, String> properties, HmDevice device, String propertyName,
-    // String datapointName) {
-    // HmChannel channelZero = device.getChannel(0);
-    // HmDatapoint dp = channelZero
-    // .getDatapoint(new HmDatapointInfo(HmParamsetType.VALUES, channelZero, datapointName));
-    // if (dp != null) {
-    // properties.put(propertyName, ObjectUtils.toString(dp.getValue()));
-    // }
-    // }
-
-    // @Override
-    // public void thingUpdated(Thing thing) {
-    // dispose();
-    // this.thing = thing;
-    // initialize();
-    // }
 
     /**
      * {@inheritDoc}
@@ -122,7 +58,7 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         try {
             if (thing.getStatus() == ThingStatus.ONLINE) {
                 logger.debug("Channel linked '{}' from thing id '{}'", channelUID, getThing().getUID().getId());
-                updateChannelState(channelUID, device);
+                updateChannelState(channelUID);
             }
         } catch (Exception ex) {
             logger.warn(ex.getMessage());
@@ -135,143 +71,46 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         logger.debug("Received command '{}' for channel '{}'", command, channelUID);
-        // HmDatapoint dp = null;
-        // try {
+
         Channel channel = getThing().getChannel(channelUID.getId());
         ChannelTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
         DeviceCommand deviceCommand = transformer.getDeviceCommand(command);
-        SmartThingsService gateway = getSmartThingsGateway();
-        gateway.runDeviceCommand(thing.getUID().getId(), deviceCommand);
+        getBridgeHandler().runDeviceCommand(UidUtils.getSmartThingsDeviceId(thing), deviceCommand);
+        update();
 
-        // HmDatapointInfo dpInfo = UidUtils.createHmDatapointInfo(channelUID);
-        // if (RefreshType.REFRESH == command) {
-        // logger.debug("Refreshing {}", dpInfo);
-        // dpInfo = new HmDatapointInfo(dpInfo.getAddress(), HmParamsetType.VALUES, 0,
-        // VIRTUAL_DATAPOINT_NAME_RELOAD_FROM_GATEWAY);
-        // dp = gateway.getDatapoint(dpInfo);
-        // gateway.sendDatapoint(dp, new HmDatapointConfig(true), Boolean.TRUE);
-        // } else {
-        // Channel channel = getThing().getChannel(channelUID.getId());
-        // if (channel == null) {
-        // logger.warn("Channel '{}' not found in thing '{}' on gateway '{}'", channelUID, getThing().getUID(),
-        // gateway.getId());
-        // } else {
-        // if (StopMoveType.STOP == command && DATAPOINT_NAME_LEVEL.equals(dpInfo.getName())) {
-        // // special case with stop type (rollershutter)
-        // dpInfo.setName(DATAPOINT_NAME_STOP);
-        // HmDatapoint stopDp = gateway.getDatapoint(dpInfo);
-        // ChannelUID stopChannelUID = UidUtils.generateChannelUID(stopDp, getThing().getUID());
-        // handleCommand(stopChannelUID, OnOffType.ON);
-        // } else {
-        // dp = gateway.getDatapoint(dpInfo);
-        // TypeConverter<?> converter = ConverterFactory.createConverter(channel.getAcceptedItemType());
-        // Object newValue = converter.convertToBinding(command, dp);
-        // HmDatapointConfig config = getChannelConfig(channel, dp);
-        // gateway.sendDatapoint(dp, config, newValue);
-        // }
-        // }
-        // }
-        // } catch (SmartThingsClientException | BridgeHandlerNotAvailableException ex) {
-        // logger.warn(ex.getMessage());
-        // } catch (IOException ex) {
-        // if (dp != null && dp.getChannel().getDevice().isOffline()) {
-        // logger.warn("Device '{}' is OFFLINE, can't send command '{}' for channel '{}'",
-        // dp.getChannel().getDevice().getAddress(), command, channelUID);
-        // logger.trace(ex.getMessage(), ex);
-        // } else {
-        // logger.error(ex.getMessage(), ex);
-        // }
-        // } catch (Exception ex) {
-        // logger.error(ex.getMessage(), ex);
-        // }
+    }
+
+    private Device getDevice() {
+        return getBridgeHandler().getDevice(UidUtils.getSmartThingsDeviceId(thing));
     }
 
     /**
      * Evaluates the channel and datapoint for this channelUID and updates the state of the channel.
      */
-    private void updateChannelState(ChannelUID channelUID, Device device) {
+    private void updateChannelState(ChannelUID channelUID) {
 
         Channel channel = getThing().getChannel(channelUID.getId());
         boolean isChannelLinked = isLinked(channel);
         if (isChannelLinked) {
             ChannelTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
-            State state = transformer.getChannelState(device);
+            State state = transformer.getChannelState(getDevice());
             updateState(channel.getUID(), state);
         }
     }
 
-    // /**
-    // * Sets the configuration or evaluates the channel for this datapoint and updates the state of the channel.
-    // */
-    // protected void updateDatapointState(HmDatapoint dp) {
-    // try {
-    // if (SmartThingsTypeGeneratorImpl.isStatusDatapoint(dp)) {
-    // updateStatus(dp.getChannel().getDevice());
-    // } else if (dp.getParamsetType() == HmParamsetType.MASTER) {
-    // // update configuration
-    // Configuration config = editConfiguration();
-    // config.put(MetadataUtils.getParameterName(dp), dp.getValue());
-    // updateConfiguration(config);
-    // } else if (!SmartThingsTypeGeneratorImpl.isIgnoredDatapoint(dp)) {
-    // // update channel
-    // ChannelUID channelUID = UidUtils.generateChannelUID(dp, thing.getUID());
-    // Channel channel = thing.getChannel(channelUID.getId());
-    // if (channel != null) {
-    // updateChannelState(dp, channel);
-    // } else {
-    // logger.warn("Channel not found for datapoint '{}'", new HmDatapointInfo(dp));
-    // }
-    // }
-    // } catch (BridgeHandlerNotAvailableException ex) {
-    // // ignore
-    // } catch (Exception ex) {
-    // logger.error(ex.getMessage(), ex);
-    // }
-    // }
-
-    /**
-     * Loads all values for the given SmartThings channel if it is not initialized.
-     */
-    // private void loadSmartThingsChannelValues(HmChannel hmChannel)
-    // throws BridgeHandlerNotAvailableException, IOException {
-    // if (!hmChannel.isInitialized()) {
-    // synchronized (this) {
-    // if (!hmChannel.isInitialized()) {
-    // try {
-    // getSmartThingsGateway().loadChannelValues(hmChannel);
-    // } catch (IOException ex) {
-    // if (hmChannel.getDevice().isOffline()) {
-    // logger.warn("Device '{}' is OFFLINE, can't update channel '{}'",
-    // hmChannel.getDevice().getAddress(), hmChannel.getNumber());
-    // } else {
-    // throw ex;
-    // }
-    // }
-    // }
-    // }
-    // }
-    // }
-
     /**
      * Updates the thing status based on device status.
      */
-    private void updateStatus(Device device) throws BridgeHandlerNotAvailableException {
-        // loadSmartThingsChannelValues(device.getChannel(0));
+    private void updateStatus() {
 
         ThingStatus oldStatus = thing.getStatus();
         ThingStatus newStatus = ThingStatus.ONLINE;
         ThingStatusDetail newDetail = ThingStatusDetail.NONE;
-
-        // if (device.isFirmwareUpdating()) {
-        // newStatus = ThingStatus.OFFLINE;
-        // newDetail = ThingStatusDetail.FIRMWARE_UPDATING;
-        // } else if (device.isUnreach()) {
-        // newStatus = ThingStatus.OFFLINE;
-        // newDetail = ThingStatusDetail.COMMUNICATION_ERROR;
-        // } else if (device.isConfigPending() || device.isUpdatePending()) {
-        // newStatus = thing.getStatus();
-        // newDetail = ThingStatusDetail.CONFIGURATION_PENDING;
-        // }
+        Device device = getDevice();
+        if (device == null) {
+            newStatus = ThingStatus.OFFLINE;
+            newDetail = ThingStatusDetail.COMMUNICATION_ERROR;
+        }
 
         if (thing.getStatus() != newStatus || thing.getStatusInfo().getStatusDetail() != newDetail) {
             updateStatus(newStatus, newDetail);
@@ -282,30 +121,11 @@ public class SmartThingsThingHandler extends BaseThingHandler {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void updateStatus(ThingStatus status) {
-        super.updateStatus(status);
-    }
-
-    /**
      * Returns true, if the channel is linked at least to one item.
      */
     private boolean isLinked(Channel channel) {
         return channel != null && super.isLinked(channel.getUID().getId());
     }
-
-    // /**
-    // * Returns the config for a channel.
-    // */
-    // private HmDatapointConfig getChannelConfig(Channel channel, HmDatapoint dp) {
-    // HmDatapointConfig dpConfig = channel.getConfiguration().as(HmDatapointConfig.class);
-    // if (DATAPOINT_NAME_STOP.equals(dp.getName()) && CHANNEL_TYPE_BLIND.equals(dp.getChannel().getType())) {
-    // dpConfig.setForceUpdate(true);
-    // }
-    // return dpConfig;
-    // }
 
     private SmartThingsBridgeHandler getBridgeHandler() {
         SmartThingsBridgeHandler bridgeHandler = null;
@@ -318,90 +138,10 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         return bridgeHandler;
     }
 
-    /**
-     * Returns the SmartThings gateway if the bridge is available.
-     */
-    private SmartThingsService getSmartThingsGateway() throws BridgeHandlerNotAvailableException {
-        if (getBridgeHandler().getGateway() == null) {
-            if (thing.getStatus() != ThingStatus.INITIALIZING) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_MISSING_ERROR);
-            }
-            throw new BridgeHandlerNotAvailableException("BridgeHandler not yet available!");
+    public void update() {
+        for (Channel channel : thing.getChannels()) {
+            updateChannelState(channel.getUID());
         }
-
-        return getBridgeHandler().getGateway();
-    }
-
-    public void thingDefinitionLoaded() {
-        // List<Channel> refreshedChannels = new ArrayList<Channel>();
-        // for (Channel channel : thing.getChannels()) {
-        // Channel newChannel = ChannelBuilder.create(channel.getUID(), channel.getAcceptedItemType())
-        // .withType(channel.getChannelTypeUID())
-        // // .withLabel("blah")
-        // .build();
-        // refreshedChannels.add(newChannel);
-        // }
-        //
-        // Thing newThing = editThing().withChannels(refreshedChannels).build();
-        // updateThing(newThing);
         thingUpdated(thing);
     }
-
-    // /**
-    // * {@inheritDoc}
-    // */
-    // @Override
-    // public void handleConfigurationUpdate(Map<String, Object> configurationParameters)
-    // throws ConfigValidationException {
-    // validateConfigurationParameters(configurationParameters);
-    //
-    // Configuration newConfig = editConfiguration();
-    // newConfig.setProperties(configurationParameters);
-    //
-    // try {
-    // for (Entry<String, Object> configurationParmeter : configurationParameters.entrySet()) {
-    // String key = configurationParmeter.getKey();
-    // Object newValue = configurationParmeter.getValue();
-    //
-    // if (key.startsWith("HMP_")) {
-    // key = StringUtils.removeStart(key, "HMP_");
-    // Integer channelNumber = NumberUtils.toInt(StringUtils.substringBefore(key, "_"));
-    // String dpName = StringUtils.substringAfter(key, "_");
-    //
-    // SmartThingsGateway gateway = getSmartThingsGateway();
-    // HmDevice device = gateway.getDevice(UidUtils.getSmartThingsAddress(getThing()));
-    // HmDatapointInfo dpInfo = new HmDatapointInfo(device.getAddress(), HmParamsetType.MASTER,
-    // channelNumber, dpName);
-    // HmDatapoint dp = device.getChannel(channelNumber).getDatapoint(dpInfo);
-    //
-    // if (dp != null) {
-    // try {
-    // if (newValue != null) {
-    // if (newValue instanceof BigDecimal) {
-    // if (dp.isIntegerType()) {
-    // newValue = ((BigDecimal) newValue).intValue();
-    // } else if (dp.isFloatType()) {
-    // newValue = ((BigDecimal) newValue).doubleValue();
-    // }
-    // }
-    // if (ObjectUtils.notEqual(dp.isEnumType() ? dp.getOptionValue() : dp.getValue(),
-    // newValue)) {
-    // gateway.sendDatapoint(dp, new HmDatapointConfig(true), newValue);
-    // }
-    // }
-    // } catch (IOException ex) {
-    // logger.error("Error setting thing property {}: {}", dpInfo, ex.getMessage());
-    // newConfig.put(key, getConfig().get(key));
-    // }
-    // } else {
-    // logger.error("Can't find datapoint for thing property {}", dpInfo);
-    // newConfig.put(key, getConfig().get(key));
-    // }
-    // }
-    // }
-    // updateConfiguration(newConfig);
-    // } catch (SmartThingsClientException | BridgeHandlerNotAvailableException ex) {
-    // logger.error("Error setting thing properties: " + ex.getMessage(), ex);
-    // }
-    // }
 }

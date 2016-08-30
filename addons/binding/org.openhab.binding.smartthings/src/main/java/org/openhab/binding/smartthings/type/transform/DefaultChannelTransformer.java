@@ -52,7 +52,8 @@ public class DefaultChannelTransformer implements ChannelTransformer {
     private static final Map<String, String> keyItemTypeMap = new HashMap<>();
     private static final Map<String, String> keyCategoryMap = new HashMap<>();
     private static final Map<String, String> attributeCommandMap = new HashMap<>();
-    private final List<String> onValues = Arrays.asList("on", "true", "open", "active", "muted");
+    private final List<String> onValues = Arrays.asList("on", "true", "active", "muted");
+    private final List<String> contactValues = Arrays.asList("closed");
 
     private final Capability capability;
     private final Attribute attribute;
@@ -73,8 +74,9 @@ public class DefaultChannelTransformer implements ChannelTransformer {
     private final ChannelType channelType;
 
     private String onValue;
-
     private String offValue;
+
+    private Map<String, String> mappedCommands;
 
     {
         initMaps();
@@ -91,6 +93,7 @@ public class DefaultChannelTransformer implements ChannelTransformer {
         }
 
         channelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(), attribute.getName());
+        mappedCommands = getPotentialCommands(channelTypeUID.getId());
         label = attribute.getName();
         description = attribute.getName();
         category = calculateCategory();
@@ -278,21 +281,54 @@ public class DefaultChannelTransformer implements ChannelTransformer {
 
         switch (attribute.getDataType()) {
             case "NUMBER":
+                if (mappedCommands != null && mappedCommands.size() == 1) {
+                    return ITEM_TYPE_DIMMER;
+                }
                 return ITEM_TYPE_NUMBER;
             case "VECTOR3":
                 return ITEM_TYPE_STRING;
             case "ENUM":
-                Map<String, String> mappedCommands = getPotentialCommands(channelTypeUID.getId());
                 if (mappedCommands != null && mappedCommands.size() == 2) {
                     String[] values = mappedCommands.keySet().toArray(new String[2]);
                     if (onValues.contains(values[0])) {
                         this.onValue = values[0];
                         this.offValue = values[1];
                         return ITEM_TYPE_SWITCH;
-                    } else if (onValues.contains(values[1].trim().toLowerCase())) {
+                    } else if (onValues.contains(values[1])) {
                         this.onValue = values[1];
                         this.offValue = values[0];
                         return ITEM_TYPE_SWITCH;
+                    }
+
+                    if (contactValues.contains(values[0])) {
+                        this.offValue = values[0];
+                        this.onValue = values[1];
+                        return ITEM_TYPE_CONTACT;
+                    } else if (contactValues.contains(values[1])) {
+                        this.offValue = values[1];
+                        this.onValue = values[0];
+                        return ITEM_TYPE_CONTACT;
+                    }
+                }
+                if (attribute.getValues().size() == 2) {
+                    if (onValues.contains(attribute.getValues().get(0))) {
+                        this.onValue = attribute.getValues().get(0);
+                        this.offValue = attribute.getValues().get(1);
+                        return ITEM_TYPE_SWITCH;
+                    } else if (onValues.contains(attribute.getValues().get(1))) {
+                        this.onValue = attribute.getValues().get(1);
+                        this.offValue = attribute.getValues().get(0);
+                        return ITEM_TYPE_SWITCH;
+                    }
+
+                    if (contactValues.contains(attribute.getValues().get(0))) {
+                        this.offValue = attribute.getValues().get(0);
+                        this.onValue = attribute.getValues().get(1);
+                        return ITEM_TYPE_CONTACT;
+                    } else if (contactValues.contains(attribute.getValues().get(1))) {
+                        this.offValue = attribute.getValues().get(1);
+                        this.onValue = attribute.getValues().get(0);
+                        return ITEM_TYPE_CONTACT;
                     }
                 }
                 return ITEM_TYPE_STRING;
@@ -346,9 +382,7 @@ public class DefaultChannelTransformer implements ChannelTransformer {
     }
 
     private OpenClosedType valueToContactType(String value) {
-        String stringValue = value.toLowerCase();
-        List<String> onValues = Arrays.asList("closed");
-        if (onValues.contains(stringValue)) {
+        if (value.equals(offValue)) {
             return OpenClosedType.CLOSED;
         }
         return OpenClosedType.OPEN;
@@ -370,7 +404,7 @@ public class DefaultChannelTransformer implements ChannelTransformer {
             if (command.getArguments() == null || command.getArguments().size() == 0) {
                 deviceCommand = new DeviceCommand(commandName);
             } else {
-                deviceCommand = new DeviceCommand(commandName, value.toString());
+                deviceCommand = new DeviceCommand(commandName, value);
             }
         }
         return deviceCommand;
