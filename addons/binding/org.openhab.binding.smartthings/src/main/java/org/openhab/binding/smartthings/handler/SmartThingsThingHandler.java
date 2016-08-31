@@ -93,8 +93,10 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         boolean isChannelLinked = isLinked(channel);
         if (isChannelLinked) {
             ChannelTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
-            State state = transformer.getChannelState(getDevice());
-            updateState(channel.getUID(), state);
+            if (transformer != null) {
+                State state = transformer.getChannelState(getDevice());
+                updateState(channel.getUID(), state);
+            }
         }
     }
 

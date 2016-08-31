@@ -26,8 +26,11 @@ public class SmartThingsTransformProvider {
         String id = channel.getChannelTypeUID().getId();
         String capabilityName = id.substring(0, id.lastIndexOf("_"));
         capabilityName = capabilityName.replaceAll("_", " ");
-        CapabilityTransformer capT = capabilityTransformerMap.get(capabilityName);
-        return capT.getChannelTransformer(channel);
+        if (capabilityTransformerMap.containsKey(capabilityName)) {
+            CapabilityTransformer capT = capabilityTransformerMap.get(capabilityName);
+            return capT.getChannelTransformer(channel);
+        }
+        return null;
     }
 
     public void registerDevice(Device device) {
