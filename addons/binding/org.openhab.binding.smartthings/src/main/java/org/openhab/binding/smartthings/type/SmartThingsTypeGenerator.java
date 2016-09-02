@@ -17,10 +17,4 @@ public interface SmartThingsTypeGenerator {
      */
     public void generate(Device device);
 
-    /**
-     * Validates all devices for multiple firmware versions. Different firmware versions for the same device may have
-     * different datapoints which may cause warnings in the logfile.
-     */
-    public void validateFirmwares();
-
 }

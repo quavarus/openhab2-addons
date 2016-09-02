@@ -8,6 +8,16 @@
  */
 package org.openhab.binding.smartthings.handler;
 
+import static org.openhab.binding.smartthings.SmartThingsBindingConstants.*;
+
+import java.math.BigDecimal;
+
+import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.OpenClosedType;
+import org.eclipse.smarthome.core.library.types.PercentType;
+import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -16,6 +26,8 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
+import org.openhab.binding.smartthings.client.model.CurrentValue;
 import org.openhab.binding.smartthings.client.model.Device;
 import org.openhab.binding.smartthings.client.model.DeviceCommand;
 import org.openhab.binding.smartthings.type.UidUtils;
@@ -92,12 +104,60 @@ public class SmartThingsThingHandler extends BaseThingHandler {
         Channel channel = getThing().getChannel(channelUID.getId());
         boolean isChannelLinked = isLinked(channel);
         if (isChannelLinked) {
-            ChannelTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
-            if (transformer != null) {
-                State state = transformer.getChannelState(getDevice());
-                updateState(channel.getUID(), state);
-            }
+
+            // ChannelTransformer transformer = getBridgeHandler().getTransformProvider().getTransformer(channel);
+            // if (transformer != null) {
+            // State state = transformer.getChannelState(getDevice());
+            // updateState(channel.getUID(), state);
+            // }
+            State state = transformChannelState(channel);
+            updateState(channelUID, state);
         }
+    }
+
+    private State transformChannelState(Channel channel) {
+        Configuration config = channel.getConfiguration();
+        String itemType = channel.getAcceptedItemType();
+        State state = null;
+        String channelId = channel.getUID().getId();
+        String attributeName = channelId.substring(channelId.lastIndexOf('_') + 1);
+        CurrentValue currentValue = getDevice().getCurrentValueMap().get(attributeName);
+
+        if (currentValue.getValue() == null) {
+            return UnDefType.NULL;
+        }
+        String currentValueString = currentValue.getValue().toString();
+        switch (itemType) {
+            case ITEM_TYPE_NUMBER:
+                return new DecimalType(new BigDecimal(currentValueString));
+            case ITEM_TYPE_STRING:
+                return new StringType(currentValueString);
+            case ITEM_TYPE_SWITCH:
+                if (config.get("onOpenValue").equals(currentValueString)) {
+                    return OnOffType.ON;
+                }
+                if (config.get("offClosedValue").equals(currentValueString)) {
+                    return OnOffType.OFF;
+                }
+                return UnDefType.NULL;
+            case ITEM_TYPE_DIMMER:
+                return new PercentType(new BigDecimal(currentValueString));
+            case ITEM_TYPE_CONTACT:
+                if (config.get("onOpenValue").equals(currentValueString)) {
+                    return OpenClosedType.OPEN;
+                }
+                if (config.get("offClosedValue").equals(currentValueString)) {
+                    return OpenClosedType.CLOSED;
+                }
+                return UnDefType.NULL;
+            case ITEM_TYPE_ROLLERSHUTTER:
+            case ITEM_TYPE_DATETIME:
+            case ITEM_TYPE_COLOR:
+            case ITEM_TYPE_IMAGE:
+                throw new UnsupportedOperationException("Item Type not supported yet.");
+        }
+
+        return state;
     }
 
     /**

@@ -1,34 +1,3353 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
-<thing:thing-descriptions bindingId="smartthings"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
-    xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
-
-
-    <channel-type id="switch">
-        <item-type>Switch</item-type>
-        <label>Switch</label>
-        <description>The switch channel allows to switch the light on and off.
-        </description>
-        <category>Light</category>
-        <tags>
-            <tag>Lighting</tag>
-        </tags>
-    </channel-type>
-
-    <channel-type id="alert" advanced="true">
-        <item-type>String</item-type>
-        <label>Alert</label>
-        <description>The alert channel allows a temporary change to the bulb’s state.</description>
-        <state>
-            <options>
-                <option value="NONE">None</option>
-                <option value="SELECT">Alert</option>
-                <option value="LSELECT">Long Alert</option>
-            </options>
-        </state>
-    </channel-type>
-
+<thing:thing-descriptions bindingId="smartthings" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
+	<channel-type id="Illuminance_Measurement_illuminance">
+		<item-type>Number</item-type>
+		<label>illuminance</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Illuminance_Measurement_illuminance"></config-description>
+	</channel-type>
+	<channel-type id="Temperature_Measurement_temperature">
+		<item-type>Number</item-type>
+		<label>temperature</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Temperature_Measurement_temperature"></config-description>
+	</channel-type>
+	<channel-type id="Relative_Humidity_Measurement_humidity">
+		<item-type>Number</item-type>
+		<label>humidity</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Relative_Humidity_Measurement_humidity"></config-description>
+	</channel-type>
+	<channel-type id="Switch_switch">
+		<item-type>Switch</item-type>
+		<label>switch</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Switch_switch">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>on</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>off</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>on()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Battery_battery">
+		<item-type>Number</item-type>
+		<label>battery</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Battery_battery"></config-description>
+	</channel-type>
+	<channel-type id="Contact_Sensor_contact">
+		<item-type>Contact</item-type>
+		<label>contact</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Contact_Sensor_contact">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>open</default>
+				<options>
+					<option value="open">open</option>
+					<option value="closed">closed</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>closed</default>
+				<options>
+					<option value="open">open</option>
+					<option value="closed">closed</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Motion_Sensor_motion">
+		<item-type>Switch</item-type>
+		<label>motion</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Motion_Sensor_motion">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>active</default>
+				<options>
+					<option value="active">active</option>
+					<option value="inactive">inactive</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>inactive</default>
+				<options>
+					<option value="active">active</option>
+					<option value="inactive">inactive</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_active" type="text">
+				<label>On Change Command (active)</label>
+				<description>The SmartThings command to call when this channel changes to "active".</description>
+			</parameter>
+			<parameter name="changeCommand_inactive" type="text">
+				<label>On Change Command (inactive)</label>
+				<description>The SmartThings command to call when this channel changes to "inactive".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Presence_Sensor_presence">
+		<item-type>Switch</item-type>
+		<label>presence</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Presence_Sensor_presence">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>present</default>
+				<options>
+					<option value="present">present</option>
+					<option value="not present">not present</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>not present</default>
+				<options>
+					<option value="present">present</option>
+					<option value="not present">not present</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_present" type="text">
+				<label>On Change Command (present)</label>
+				<description>The SmartThings command to call when this channel changes to "present".</description>
+			</parameter>
+			<parameter name="changeCommand_not_present" type="text">
+				<label>On Change Command (not present)</label>
+				<description>The SmartThings command to call when this channel changes to "not present".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Alarm_alarm">
+		<item-type>String</item-type>
+		<label>alarm</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="off">off</option>
+				<option value="both">both</option>
+				<option value="strobe">strobe</option>
+				<option value="siren">siren</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Alarm_alarm">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="off()">off()</option>
+					<option value="strobe()">strobe()</option>
+					<option value="siren()">siren()</option>
+					<option value="both()">both()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="strobe()">strobe()</option>
+					<option value="siren()">siren()</option>
+					<option value="both()">both()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_both" type="text">
+				<label>On Change Command (both)</label>
+				<description>The SmartThings command to call when this channel changes to "both".</description>
+				<default>both()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="strobe()">strobe()</option>
+					<option value="siren()">siren()</option>
+					<option value="both()">both()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_strobe" type="text">
+				<label>On Change Command (strobe)</label>
+				<description>The SmartThings command to call when this channel changes to "strobe".</description>
+				<default>strobe()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="strobe()">strobe()</option>
+					<option value="siren()">siren()</option>
+					<option value="both()">both()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_siren" type="text">
+				<label>On Change Command (siren)</label>
+				<description>The SmartThings command to call when this channel changes to "siren".</description>
+				<default>siren()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="strobe()">strobe()</option>
+					<option value="siren()">siren()</option>
+					<option value="both()">both()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Water_Sensor_water">
+		<item-type>Switch</item-type>
+		<label>water</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Water_Sensor_water">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>wet</default>
+				<options>
+					<option value="dry">dry</option>
+					<option value="wet">wet</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>dry</default>
+				<options>
+					<option value="dry">dry</option>
+					<option value="wet">wet</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_dry" type="text">
+				<label>On Change Command (dry)</label>
+				<description>The SmartThings command to call when this channel changes to "dry".</description>
+			</parameter>
+			<parameter name="changeCommand_wet" type="text">
+				<label>On Change Command (wet)</label>
+				<description>The SmartThings command to call when this channel changes to "wet".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Three_Axis_threeAxis">
+		<item-type>String</item-type>
+		<label>threeAxis</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Three_Axis_threeAxis"></config-description>
+	</channel-type>
+	<channel-type id="Switch_Level_level">
+		<item-type>Dimmer</item-type>
+		<label>level</label>
+		<state pattern="%s%%" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Switch_Level_level">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setLevel(NUMBER, NUMBER)</default>
+				<options>
+					<option value="setLevel(NUMBER, NUMBER)">setLevel(NUMBER, NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Lock_lock">
+		<item-type>String</item-type>
+		<label>lock</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="unlocked with timeout">unlocked with timeout</option>
+				<option value="locked">locked</option>
+				<option value="unknown">unknown</option>
+				<option value="unlocked">unlocked</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Lock_lock">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unlocked_with_timeout" type="text">
+				<label>On Change Command (unlocked with timeout)</label>
+				<description>The SmartThings command to call when this channel changes to "unlocked with timeout".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_locked" type="text">
+				<label>On Change Command (locked)</label>
+				<description>The SmartThings command to call when this channel changes to "locked".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unlocked" type="text">
+				<label>On Change Command (unlocked)</label>
+				<description>The SmartThings command to call when this channel changes to "unlocked".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Acceleration_Sensor_acceleration">
+		<item-type>Switch</item-type>
+		<label>acceleration</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Acceleration_Sensor_acceleration">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>active</default>
+				<options>
+					<option value="inactive">inactive</option>
+					<option value="active">active</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>inactive</default>
+				<options>
+					<option value="inactive">inactive</option>
+					<option value="active">active</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_inactive" type="text">
+				<label>On Change Command (inactive)</label>
+				<description>The SmartThings command to call when this channel changes to "inactive".</description>
+			</parameter>
+			<parameter name="changeCommand_active" type="text">
+				<label>On Change Command (active)</label>
+				<description>The SmartThings command to call when this channel changes to "active".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_temperature">
+		<item-type>Number</item-type>
+		<label>temperature</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_temperature">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_heatingSetpoint">
+		<item-type>Number</item-type>
+		<label>heatingSetpoint</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_heatingSetpoint">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setHeatingSetpoint(NUMBER)</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_coolingSetpoint">
+		<item-type>Number</item-type>
+		<label>coolingSetpoint</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_coolingSetpoint">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setCoolingSetpoint(NUMBER)</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_thermostatSetpoint">
+		<item-type>Number</item-type>
+		<label>thermostatSetpoint</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_thermostatSetpoint">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_thermostatMode">
+		<item-type>String</item-type>
+		<label>thermostatMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="emergency heat">emergency heat</option>
+				<option value="heat">heat</option>
+				<option value="auto">auto</option>
+				<option value="off">off</option>
+				<option value="cool">cool</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_thermostatMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_emergency_heat" type="text">
+				<label>On Change Command (emergency heat)</label>
+				<description>The SmartThings command to call when this channel changes to "emergency heat".</description>
+				<default>emergencyHeat()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_heat" type="text">
+				<label>On Change Command (heat)</label>
+				<description>The SmartThings command to call when this channel changes to "heat".</description>
+				<default>heat()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_auto" type="text">
+				<label>On Change Command (auto)</label>
+				<description>The SmartThings command to call when this channel changes to "auto".</description>
+				<default>auto()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_cool" type="text">
+				<label>On Change Command (cool)</label>
+				<description>The SmartThings command to call when this channel changes to "cool".</description>
+				<default>cool()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_thermostatFanMode">
+		<item-type>String</item-type>
+		<label>thermostatFanMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="auto">auto</option>
+				<option value="circulate">circulate</option>
+				<option value="on">on</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_thermostatFanMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_auto" type="text">
+				<label>On Change Command (auto)</label>
+				<description>The SmartThings command to call when this channel changes to "auto".</description>
+				<default>fanAuto()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_circulate" type="text">
+				<label>On Change Command (circulate)</label>
+				<description>The SmartThings command to call when this channel changes to "circulate".</description>
+				<default>fanCirculate()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>fanOn()</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_thermostatOperatingState">
+		<item-type>String</item-type>
+		<label>thermostatOperatingState</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="idle">idle</option>
+				<option value="pending cool">pending cool</option>
+				<option value="cooling">cooling</option>
+				<option value="pending heat">pending heat</option>
+				<option value="heating">heating</option>
+				<option value="vent economizer">vent economizer</option>
+				<option value="fan only">fan only</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_thermostatOperatingState">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_idle" type="text">
+				<label>On Change Command (idle)</label>
+				<description>The SmartThings command to call when this channel changes to "idle".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_pending_cool" type="text">
+				<label>On Change Command (pending cool)</label>
+				<description>The SmartThings command to call when this channel changes to "pending cool".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_cooling" type="text">
+				<label>On Change Command (cooling)</label>
+				<description>The SmartThings command to call when this channel changes to "cooling".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_pending_heat" type="text">
+				<label>On Change Command (pending heat)</label>
+				<description>The SmartThings command to call when this channel changes to "pending heat".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_heating" type="text">
+				<label>On Change Command (heating)</label>
+				<description>The SmartThings command to call when this channel changes to "heating".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_vent_economizer" type="text">
+				<label>On Change Command (vent economizer)</label>
+				<description>The SmartThings command to call when this channel changes to "vent economizer".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_fan_only" type="text">
+				<label>On Change Command (fan only)</label>
+				<description>The SmartThings command to call when this channel changes to "fan only".</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_schedule">
+		<item-type>String</item-type>
+		<label>schedule</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_schedule">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+					<option value="auto()">auto()</option>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Image_Capture_image">
+		<item-type>String</item-type>
+		<label>image</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Image_Capture_image">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="take()">take()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Energy_Meter_energy">
+		<item-type>Number</item-type>
+		<label>energy</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Energy_Meter_energy"></config-description>
+	</channel-type>
+	<channel-type id="Power_Meter_power">
+		<item-type>Number</item-type>
+		<label>power</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Power_Meter_power"></config-description>
+	</channel-type>
+	<channel-type id="Indicator_indicatorStatus">
+		<item-type>String</item-type>
+		<label>indicatorStatus</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="never">never</option>
+				<option value="when off">when off</option>
+				<option value="when on">when on</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Indicator_indicatorStatus">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="indicatorWhenOn()">indicatorWhenOn()</option>
+					<option value="indicatorWhenOff()">indicatorWhenOff()</option>
+					<option value="indicatorNever()">indicatorNever()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_never" type="text">
+				<label>On Change Command (never)</label>
+				<description>The SmartThings command to call when this channel changes to "never".</description>
+				<default>indicatorNever()</default>
+				<options>
+					<option value="indicatorWhenOn()">indicatorWhenOn()</option>
+					<option value="indicatorWhenOff()">indicatorWhenOff()</option>
+					<option value="indicatorNever()">indicatorNever()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_when_off" type="text">
+				<label>On Change Command (when off)</label>
+				<description>The SmartThings command to call when this channel changes to "when off".</description>
+				<default>indicatorWhenOff()</default>
+				<options>
+					<option value="indicatorWhenOn()">indicatorWhenOn()</option>
+					<option value="indicatorWhenOff()">indicatorWhenOff()</option>
+					<option value="indicatorNever()">indicatorNever()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_when_on" type="text">
+				<label>On Change Command (when on)</label>
+				<description>The SmartThings command to call when this channel changes to "when on".</description>
+				<default>indicatorWhenOn()</default>
+				<options>
+					<option value="indicatorWhenOn()">indicatorWhenOn()</option>
+					<option value="indicatorWhenOff()">indicatorWhenOff()</option>
+					<option value="indicatorNever()">indicatorNever()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Valve_contact">
+		<item-type>Contact</item-type>
+		<label>contact</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Valve_contact">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>open</default>
+				<options>
+					<option value="closed">closed</option>
+					<option value="open">open</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>closed</default>
+				<options>
+					<option value="closed">closed</option>
+					<option value="open">open</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Valve_valve">
+		<item-type>Switch</item-type>
+		<label>valve</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Valve_valve">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>open</default>
+				<options>
+					<option value="open">open</option>
+					<option value="closed">closed</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>closed</default>
+				<options>
+					<option value="open">open</option>
+					<option value="closed">closed</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+				<default>open()</default>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+				<default>close()</default>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Location_Mode_mode">
+		<item-type>String</item-type>
+		<label>mode</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Location_Mode_mode"></config-description>
+	</channel-type>
+	<channel-type id="Signal_Strength_lqi">
+		<item-type>Number</item-type>
+		<label>lqi</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Signal_Strength_lqi"></config-description>
+	</channel-type>
+	<channel-type id="Signal_Strength_rssi">
+		<item-type>Number</item-type>
+		<label>rssi</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Signal_Strength_rssi"></config-description>
+	</channel-type>
+	<channel-type id="Smoke_Detector_smoke">
+		<item-type>String</item-type>
+		<label>smoke</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="detected">detected</option>
+				<option value="clear">clear</option>
+				<option value="tested">tested</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Smoke_Detector_smoke">
+			<parameter name="changeCommand_detected" type="text">
+				<label>On Change Command (detected)</label>
+				<description>The SmartThings command to call when this channel changes to "detected".</description>
+			</parameter>
+			<parameter name="changeCommand_clear" type="text">
+				<label>On Change Command (clear)</label>
+				<description>The SmartThings command to call when this channel changes to "clear".</description>
+			</parameter>
+			<parameter name="changeCommand_tested" type="text">
+				<label>On Change Command (tested)</label>
+				<description>The SmartThings command to call when this channel changes to "tested".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Carbon_Monoxide_Detector_carbonMonoxide">
+		<item-type>String</item-type>
+		<label>carbonMonoxide</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="clear">clear</option>
+				<option value="detected">detected</option>
+				<option value="tested">tested</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Carbon_Monoxide_Detector_carbonMonoxide">
+			<parameter name="changeCommand_clear" type="text">
+				<label>On Change Command (clear)</label>
+				<description>The SmartThings command to call when this channel changes to "clear".</description>
+			</parameter>
+			<parameter name="changeCommand_detected" type="text">
+				<label>On Change Command (detected)</label>
+				<description>The SmartThings command to call when this channel changes to "detected".</description>
+			</parameter>
+			<parameter name="changeCommand_tested" type="text">
+				<label>On Change Command (tested)</label>
+				<description>The SmartThings command to call when this channel changes to "tested".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Button_button">
+		<item-type>String</item-type>
+		<label>button</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="pushed">pushed</option>
+				<option value="held">held</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Button_button">
+			<parameter name="changeCommand_pushed" type="text">
+				<label>On Change Command (pushed)</label>
+				<description>The SmartThings command to call when this channel changes to "pushed".</description>
+			</parameter>
+			<parameter name="changeCommand_held" type="text">
+				<label>On Change Command (held)</label>
+				<description>The SmartThings command to call when this channel changes to "held".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Button_numberOfButtons">
+		<item-type>Number</item-type>
+		<label>numberOfButtons</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Button_numberOfButtons"></config-description>
+	</channel-type>
+	<channel-type id="Music_Player_status">
+		<item-type>String</item-type>
+		<label>status</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Music_Player_status">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Music_Player_level">
+		<item-type>Number</item-type>
+		<label>level</label>
+		<state pattern="%s%%" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Music_Player_level">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Music_Player_trackDescription">
+		<item-type>String</item-type>
+		<label>trackDescription</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Music_Player_trackDescription">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Music_Player_trackData">
+		<item-type>String</item-type>
+		<label>trackData</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Music_Player_trackData">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Music_Player_mute">
+		<item-type>Switch</item-type>
+		<label>mute</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Music_Player_mute">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>muted</default>
+				<options>
+					<option value="unmuted">unmuted</option>
+					<option value="muted">muted</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>unmuted</default>
+				<options>
+					<option value="unmuted">unmuted</option>
+					<option value="muted">muted</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unmuted" type="text">
+				<label>On Change Command (unmuted)</label>
+				<description>The SmartThings command to call when this channel changes to "unmuted".</description>
+				<default>unmute()</default>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_muted" type="text">
+				<label>On Change Command (muted)</label>
+				<description>The SmartThings command to call when this channel changes to "muted".</description>
+				<default>mute()</default>
+				<options>
+					<option value="play()">play()</option>
+					<option value="pause()">pause()</option>
+					<option value="stop()">stop()</option>
+					<option value="nextTrack()">nextTrack()</option>
+					<option value="playTrack(STRING)">playTrack(STRING)</option>
+					<option value="setLevel(NUMBER)">setLevel(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="previousTrack()">previousTrack()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setTrack(STRING)">setTrack(STRING)</option>
+					<option value="resumeTrack(STRING)">resumeTrack(STRING)</option>
+					<option value="restoreTrack(STRING)">restoreTrack(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Lock_Codes_lock">
+		<item-type>String</item-type>
+		<label>lock</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="unknown">unknown</option>
+				<option value="unlocked with timeout">unlocked with timeout</option>
+				<option value="locked">locked</option>
+				<option value="unlocked">unlocked</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Lock_Codes_lock">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unlocked_with_timeout" type="text">
+				<label>On Change Command (unlocked with timeout)</label>
+				<description>The SmartThings command to call when this channel changes to "unlocked with timeout".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_locked" type="text">
+				<label>On Change Command (locked)</label>
+				<description>The SmartThings command to call when this channel changes to "locked".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unlocked" type="text">
+				<label>On Change Command (unlocked)</label>
+				<description>The SmartThings command to call when this channel changes to "unlocked".</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Lock_Codes_codeReport">
+		<item-type>String</item-type>
+		<label>codeReport</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Lock_Codes_codeReport">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Lock_Codes_codeChanged">
+		<item-type>String</item-type>
+		<label>codeChanged</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Lock_Codes_codeChanged">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="lock()">lock()</option>
+					<option value="unlock()">unlock()</option>
+					<option value="updateCodes(JSON_OBJECT)">updateCodes(JSON_OBJECT)</option>
+					<option value="setCode(STRING, NUMBER)">setCode(STRING, NUMBER)</option>
+					<option value="deleteCode(NUMBER)">deleteCode(NUMBER)</option>
+					<option value="requestCode(NUMBER)">requestCode(NUMBER)</option>
+					<option value="reloadAllCodes()">reloadAllCodes()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Color_Control_hue">
+		<item-type>Number</item-type>
+		<label>hue</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Color_Control_hue">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setHue(NUMBER)</default>
+				<options>
+					<option value="setHue(NUMBER)">setHue(NUMBER)</option>
+					<option value="setSaturation(NUMBER)">setSaturation(NUMBER)</option>
+					<option value="setColor(COLOR_MAP)">setColor(COLOR_MAP)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Color_Control_saturation">
+		<item-type>Number</item-type>
+		<label>saturation</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Color_Control_saturation">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setSaturation(NUMBER)</default>
+				<options>
+					<option value="setHue(NUMBER)">setHue(NUMBER)</option>
+					<option value="setSaturation(NUMBER)">setSaturation(NUMBER)</option>
+					<option value="setColor(COLOR_MAP)">setColor(COLOR_MAP)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Color_Control_color">
+		<item-type>String</item-type>
+		<label>color</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Color_Control_color">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setColor(COLOR_MAP)</default>
+				<options>
+					<option value="setHue(NUMBER)">setHue(NUMBER)</option>
+					<option value="setSaturation(NUMBER)">setSaturation(NUMBER)</option>
+					<option value="setColor(COLOR_MAP)">setColor(COLOR_MAP)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Relay_Switch_switch">
+		<item-type>Switch</item-type>
+		<label>switch</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Relay_Switch_switch">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>on</default>
+				<options>
+					<option value="on">on</option>
+					<option value="off">off</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>off</default>
+				<options>
+					<option value="on">on</option>
+					<option value="off">off</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>on()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Beacon_presence">
+		<item-type>Switch</item-type>
+		<label>presence</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Beacon_presence">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>present</default>
+				<options>
+					<option value="present">present</option>
+					<option value="not present">not present</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>not present</default>
+				<options>
+					<option value="present">present</option>
+					<option value="not present">not present</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_present" type="text">
+				<label>On Change Command (present)</label>
+				<description>The SmartThings command to call when this channel changes to "present".</description>
+			</parameter>
+			<parameter name="changeCommand_not_present" type="text">
+				<label>On Change Command (not present)</label>
+				<description>The SmartThings command to call when this channel changes to "not present".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Sleep_Sensor_sleeping">
+		<item-type>Switch</item-type>
+		<label>sleeping</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Sleep_Sensor_sleeping">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>sleeping</default>
+				<options>
+					<option value="sleeping">sleeping</option>
+					<option value="not sleeping">not sleeping</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>not sleeping</default>
+				<options>
+					<option value="sleeping">sleeping</option>
+					<option value="not sleeping">not sleeping</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_sleeping" type="text">
+				<label>On Change Command (sleeping)</label>
+				<description>The SmartThings command to call when this channel changes to "sleeping".</description>
+			</parameter>
+			<parameter name="changeCommand_not_sleeping" type="text">
+				<label>On Change Command (not sleeping)</label>
+				<description>The SmartThings command to call when this channel changes to "not sleeping".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Step_Sensor_steps">
+		<item-type>Number</item-type>
+		<label>steps</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Step_Sensor_steps"></config-description>
+	</channel-type>
+	<channel-type id="Step_Sensor_goal">
+		<item-type>Number</item-type>
+		<label>goal</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Step_Sensor_goal"></config-description>
+	</channel-type>
+	<channel-type id="Door_Control_door">
+		<item-type>String</item-type>
+		<label>door</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="closing">closing</option>
+				<option value="open">open</option>
+				<option value="opening">opening</option>
+				<option value="unknown">unknown</option>
+				<option value="closed">closed</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Door_Control_door">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closing" type="text">
+				<label>On Change Command (closing)</label>
+				<description>The SmartThings command to call when this channel changes to "closing".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_opening" type="text">
+				<label>On Change Command (opening)</label>
+				<description>The SmartThings command to call when this channel changes to "opening".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Media_Controller_activities">
+		<item-type>String</item-type>
+		<label>activities</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Media_Controller_activities">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="startActivity(STRING)">startActivity(STRING)</option>
+					<option value="getAllActivities()">getAllActivities()</option>
+					<option value="getCurrentActivity()">getCurrentActivity()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Media_Controller_currentActivity">
+		<item-type>String</item-type>
+		<label>currentActivity</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Media_Controller_currentActivity">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="startActivity(STRING)">startActivity(STRING)</option>
+					<option value="getAllActivities()">getAllActivities()</option>
+					<option value="getCurrentActivity()">getCurrentActivity()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Speech_Recognition_phraseSpoken">
+		<item-type>String</item-type>
+		<label>phraseSpoken</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Speech_Recognition_phraseSpoken"></config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Cooling_Setpoint_coolingSetpoint">
+		<item-type>Number</item-type>
+		<label>coolingSetpoint</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_Cooling_Setpoint_coolingSetpoint">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setCoolingSetpoint(NUMBER)</default>
+				<options>
+					<option value="setCoolingSetpoint(NUMBER)">setCoolingSetpoint(NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Touch_Sensor_touch">
+		<item-type>String</item-type>
+		<label>touch</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="touched">touched</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Touch_Sensor_touch">
+			<parameter name="changeCommand_touched" type="text">
+				<label>On Change Command (touched)</label>
+				<description>The SmartThings command to call when this channel changes to "touched".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Mode_thermostatMode">
+		<item-type>String</item-type>
+		<label>thermostatMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="heat">heat</option>
+				<option value="cool">cool</option>
+				<option value="emergency heat">emergency heat</option>
+				<option value="auto">auto</option>
+				<option value="off">off</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_Mode_thermostatMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_heat" type="text">
+				<label>On Change Command (heat)</label>
+				<description>The SmartThings command to call when this channel changes to "heat".</description>
+				<default>heat()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_cool" type="text">
+				<label>On Change Command (cool)</label>
+				<description>The SmartThings command to call when this channel changes to "cool".</description>
+				<default>cool()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_emergency_heat" type="text">
+				<label>On Change Command (emergency heat)</label>
+				<description>The SmartThings command to call when this channel changes to "emergency heat".</description>
+				<default>emergencyHeat()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_auto" type="text">
+				<label>On Change Command (auto)</label>
+				<description>The SmartThings command to call when this channel changes to "auto".</description>
+				<default>auto()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="heat()">heat()</option>
+					<option value="emergencyHeat()">emergencyHeat()</option>
+					<option value="cool()">cool()</option>
+					<option value="auto()">auto()</option>
+					<option value="setThermostatMode(ENUM)">setThermostatMode(ENUM)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Fan_Mode_thermostatFanMode">
+		<item-type>String</item-type>
+		<label>thermostatFanMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="on">on</option>
+				<option value="auto">auto</option>
+				<option value="circulate">circulate</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_Fan_Mode_thermostatFanMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>fanOn()</default>
+				<options>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_auto" type="text">
+				<label>On Change Command (auto)</label>
+				<description>The SmartThings command to call when this channel changes to "auto".</description>
+				<default>fanAuto()</default>
+				<options>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_circulate" type="text">
+				<label>On Change Command (circulate)</label>
+				<description>The SmartThings command to call when this channel changes to "circulate".</description>
+				<default>fanCirculate()</default>
+				<options>
+					<option value="fanOn()">fanOn()</option>
+					<option value="fanAuto()">fanAuto()</option>
+					<option value="fanCirculate()">fanCirculate()</option>
+					<option value="setThermostatFanMode(ENUM)">setThermostatFanMode(ENUM)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Operating_State_thermostatOperatingState">
+		<item-type>String</item-type>
+		<label>thermostatOperatingState</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="pending cool">pending cool</option>
+				<option value="heating">heating</option>
+				<option value="cooling">cooling</option>
+				<option value="pending heat">pending heat</option>
+				<option value="vent economizer">vent economizer</option>
+				<option value="idle">idle</option>
+				<option value="fan only">fan only</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Thermostat_Operating_State_thermostatOperatingState">
+			<parameter name="changeCommand_pending_cool" type="text">
+				<label>On Change Command (pending cool)</label>
+				<description>The SmartThings command to call when this channel changes to "pending cool".</description>
+			</parameter>
+			<parameter name="changeCommand_heating" type="text">
+				<label>On Change Command (heating)</label>
+				<description>The SmartThings command to call when this channel changes to "heating".</description>
+			</parameter>
+			<parameter name="changeCommand_cooling" type="text">
+				<label>On Change Command (cooling)</label>
+				<description>The SmartThings command to call when this channel changes to "cooling".</description>
+			</parameter>
+			<parameter name="changeCommand_pending_heat" type="text">
+				<label>On Change Command (pending heat)</label>
+				<description>The SmartThings command to call when this channel changes to "pending heat".</description>
+			</parameter>
+			<parameter name="changeCommand_vent_economizer" type="text">
+				<label>On Change Command (vent economizer)</label>
+				<description>The SmartThings command to call when this channel changes to "vent economizer".</description>
+			</parameter>
+			<parameter name="changeCommand_idle" type="text">
+				<label>On Change Command (idle)</label>
+				<description>The SmartThings command to call when this channel changes to "idle".</description>
+			</parameter>
+			<parameter name="changeCommand_fan_only" type="text">
+				<label>On Change Command (fan only)</label>
+				<description>The SmartThings command to call when this channel changes to "fan only".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Heating_Setpoint_heatingSetpoint">
+		<item-type>Number</item-type>
+		<label>heatingSetpoint</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_Heating_Setpoint_heatingSetpoint">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setHeatingSetpoint(NUMBER)</default>
+				<options>
+					<option value="setHeatingSetpoint(NUMBER)">setHeatingSetpoint(NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Setpoint_thermostatSetpoint">
+		<item-type>Number</item-type>
+		<label>thermostatSetpoint</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_Setpoint_thermostatSetpoint"></config-description>
+	</channel-type>
+	<channel-type id="TV_volume">
+		<item-type>Number</item-type>
+		<label>volume</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_volume">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="TV_channel">
+		<item-type>Number</item-type>
+		<label>channel</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_channel">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="TV_power">
+		<item-type>String</item-type>
+		<label>power</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_power">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="TV_picture">
+		<item-type>String</item-type>
+		<label>picture</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_picture">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="TV_sound">
+		<item-type>String</item-type>
+		<label>sound</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_sound">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="TV_movieMode">
+		<item-type>String</item-type>
+		<label>movieMode</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:TV_movieMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="channelUp()">channelUp()</option>
+					<option value="channelDown()">channelDown()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Color_Temperature_colorTemperature">
+		<item-type>Number</item-type>
+		<label>colorTemperature</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Color_Temperature_colorTemperature">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setColorTemperature(NUMBER)</default>
+				<options>
+					<option value="setColorTemperature(NUMBER)">setColorTemperature(NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Garage_Door_Control_door">
+		<item-type>String</item-type>
+		<label>door</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="unknown">unknown</option>
+				<option value="closing">closing</option>
+				<option value="open">open</option>
+				<option value="opening">opening</option>
+				<option value="closed">closed</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Garage_Door_Control_door">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closing" type="text">
+				<label>On Change Command (closing)</label>
+				<description>The SmartThings command to call when this channel changes to "closing".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_opening" type="text">
+				<label>On Change Command (opening)</label>
+				<description>The SmartThings command to call when this channel changes to "opening".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Estimated_Time_Of_Arrival_eta">
+		<item-type>DateTime</item-type>
+		<label>eta</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Estimated_Time_Of_Arrival_eta"></config-description>
+	</channel-type>
+	<channel-type id="Thermostat_Schedule_schedule">
+		<item-type>String</item-type>
+		<label>schedule</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Thermostat_Schedule_schedule">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setSchedule(JSON_OBJECT)</default>
+				<options>
+					<option value="setSchedule(JSON_OBJECT)">setSchedule(JSON_OBJECT)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Health_Check_checkInterval">
+		<item-type>Number</item-type>
+		<label>checkInterval</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Health_Check_checkInterval">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="ping()">ping()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Ultraviolet_Index_ultravioletIndex">
+		<item-type>Number</item-type>
+		<label>ultravioletIndex</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Ultraviolet_Index_ultravioletIndex"></config-description>
+	</channel-type>
+	<channel-type id="Video_Camera_camera">
+		<item-type>String</item-type>
+		<label>camera</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="on">on</option>
+				<option value="restarting">restarting</option>
+				<option value="unavailable">unavailable</option>
+				<option value="off">off</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Video_Camera_camera">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>on()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_restarting" type="text">
+				<label>On Change Command (restarting)</label>
+				<description>The SmartThings command to call when this channel changes to "restarting".</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unavailable" type="text">
+				<label>On Change Command (unavailable)</label>
+				<description>The SmartThings command to call when this channel changes to "unavailable".</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Video_Camera_statusMessage">
+		<item-type>String</item-type>
+		<label>statusMessage</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Video_Camera_statusMessage">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Video_Camera_mute">
+		<item-type>Switch</item-type>
+		<label>mute</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Video_Camera_mute">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>muted</default>
+				<options>
+					<option value="muted">muted</option>
+					<option value="unmuted">unmuted</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>unmuted</default>
+				<options>
+					<option value="muted">muted</option>
+					<option value="unmuted">unmuted</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_muted" type="text">
+				<label>On Change Command (muted)</label>
+				<description>The SmartThings command to call when this channel changes to "muted".</description>
+				<default>mute()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unmuted" type="text">
+				<label>On Change Command (unmuted)</label>
+				<description>The SmartThings command to call when this channel changes to "unmuted".</description>
+				<default>unmute()</default>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Video_Camera_settings">
+		<item-type>String</item-type>
+		<label>settings</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Video_Camera_settings">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="flip()">flip()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Video_Capture_clip">
+		<item-type>String</item-type>
+		<label>clip</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Video_Capture_clip">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="capture(DATE, DATE, DATE)">capture(DATE, DATE, DATE)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Zw_Multichannel_epEvent">
+		<item-type>String</item-type>
+		<label>epEvent</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Zw_Multichannel_epEvent">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="enableEpEvents(STRING)">enableEpEvents(STRING)</option>
+					<option value="epCmd(STRING, NUMBER)">epCmd(STRING, NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Zw_Multichannel_epInfo">
+		<item-type>String</item-type>
+		<label>epInfo</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Zw_Multichannel_epInfo">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="enableEpEvents(STRING)">enableEpEvents(STRING)</option>
+					<option value="epCmd(STRING, NUMBER)">epCmd(STRING, NUMBER)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Sound_Sensor_sound">
+		<item-type>Switch</item-type>
+		<label>sound</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Sound_Sensor_sound">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>detected</default>
+				<options>
+					<option value="not detected">not detected</option>
+					<option value="detected">detected</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>not detected</default>
+				<options>
+					<option value="not detected">not detected</option>
+					<option value="detected">detected</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_not_detected" type="text">
+				<label>On Change Command (not detected)</label>
+				<description>The SmartThings command to call when this channel changes to "not detected".</description>
+			</parameter>
+			<parameter name="changeCommand_detected" type="text">
+				<label>On Change Command (detected)</label>
+				<description>The SmartThings command to call when this channel changes to "detected".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Consumable_consumableStatus">
+		<item-type>String</item-type>
+		<label>consumableStatus</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="order">order</option>
+				<option value="maintenance_required">maintenance_required</option>
+				<option value="replace">replace</option>
+				<option value="missing">missing</option>
+				<option value="good">good</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Consumable_consumableStatus">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_order" type="text">
+				<label>On Change Command (order)</label>
+				<description>The SmartThings command to call when this channel changes to "order".</description>
+				<default>setConsumableStatus(STRING)</default>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_maintenance_required" type="text">
+				<label>On Change Command (maintenance_required)</label>
+				<description>The SmartThings command to call when this channel changes to "maintenance_required".</description>
+				<default>setConsumableStatus(STRING)</default>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_replace" type="text">
+				<label>On Change Command (replace)</label>
+				<description>The SmartThings command to call when this channel changes to "replace".</description>
+				<default>setConsumableStatus(STRING)</default>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_missing" type="text">
+				<label>On Change Command (missing)</label>
+				<description>The SmartThings command to call when this channel changes to "missing".</description>
+				<default>setConsumableStatus(STRING)</default>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_good" type="text">
+				<label>On Change Command (good)</label>
+				<description>The SmartThings command to call when this channel changes to "good".</description>
+				<options>
+					<option value="setConsumableStatus(STRING)">setConsumableStatus(STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Timed_Session_sessionStatus">
+		<item-type>String</item-type>
+		<label>sessionStatus</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="stopped">stopped</option>
+				<option value="running">running</option>
+				<option value="canceled">canceled</option>
+				<option value="paused">paused</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Timed_Session_sessionStatus">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_stopped" type="text">
+				<label>On Change Command (stopped)</label>
+				<description>The SmartThings command to call when this channel changes to "stopped".</description>
+				<default>stop()</default>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_running" type="text">
+				<label>On Change Command (running)</label>
+				<description>The SmartThings command to call when this channel changes to "running".</description>
+				<default>start()</default>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_canceled" type="text">
+				<label>On Change Command (canceled)</label>
+				<description>The SmartThings command to call when this channel changes to "canceled".</description>
+				<default>cancel()</default>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_paused" type="text">
+				<label>On Change Command (paused)</label>
+				<description>The SmartThings command to call when this channel changes to "paused".</description>
+				<default>pause()</default>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Timed_Session_timeRemaining">
+		<item-type>Number</item-type>
+		<label>timeRemaining</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Timed_Session_timeRemaining">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setTimeRemaining(NUMBER)</default>
+				<options>
+					<option value="setTimeRemaining(NUMBER)">setTimeRemaining(NUMBER)</option>
+					<option value="start()">start()</option>
+					<option value="stop()">stop()</option>
+					<option value="pause()">pause()</option>
+					<option value="cancel()">cancel()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Carbon_Dioxide_Measurement_carbonDioxide">
+		<item-type>Number</item-type>
+		<label>carbonDioxide</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Carbon_Dioxide_Measurement_carbonDioxide"></config-description>
+	</channel-type>
+	<channel-type id="Sound_Pressure_Level_soundPressureLevel">
+		<item-type>Number</item-type>
+		<label>soundPressureLevel</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Sound_Pressure_Level_soundPressureLevel"></config-description>
+	</channel-type>
+	<channel-type id="pH_Measurement_pH">
+		<item-type>Number</item-type>
+		<label>pH</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:pH_Measurement_pH"></config-description>
+	</channel-type>
+	<channel-type id="Tamper_Alert_tamper">
+		<item-type>Switch</item-type>
+		<label>tamper</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Tamper_Alert_tamper">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>detected</default>
+				<options>
+					<option value="detected">detected</option>
+					<option value="clear">clear</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>clear</default>
+				<options>
+					<option value="detected">detected</option>
+					<option value="clear">clear</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_detected" type="text">
+				<label>On Change Command (detected)</label>
+				<description>The SmartThings command to call when this channel changes to "detected".</description>
+			</parameter>
+			<parameter name="changeCommand_clear" type="text">
+				<label>On Change Command (clear)</label>
+				<description>The SmartThings command to call when this channel changes to "clear".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Voltage_Measurement_voltage">
+		<item-type>Number</item-type>
+		<label>voltage</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Voltage_Measurement_voltage"></config-description>
+	</channel-type>
+	<channel-type id="Window_Shade_windowShade">
+		<item-type>String</item-type>
+		<label>windowShade</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="unknown">unknown</option>
+				<option value="closed">closed</option>
+				<option value="partially open">partially open</option>
+				<option value="closing">closing</option>
+				<option value="opening">opening</option>
+				<option value="open">open</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Window_Shade_windowShade">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closed" type="text">
+				<label>On Change Command (closed)</label>
+				<description>The SmartThings command to call when this channel changes to "closed".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_partially_open" type="text">
+				<label>On Change Command (partially open)</label>
+				<description>The SmartThings command to call when this channel changes to "partially open".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_closing" type="text">
+				<label>On Change Command (closing)</label>
+				<description>The SmartThings command to call when this channel changes to "closing".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_opening" type="text">
+				<label>On Change Command (opening)</label>
+				<description>The SmartThings command to call when this channel changes to "opening".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_open" type="text">
+				<label>On Change Command (open)</label>
+				<description>The SmartThings command to call when this channel changes to "open".</description>
+				<options>
+					<option value="open()">open()</option>
+					<option value="close()">close()</option>
+					<option value="presetPosition()">presetPosition()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Shock_Sensor_shock">
+		<item-type>Switch</item-type>
+		<label>shock</label>
+		<state pattern="%s" readOnly="true"></state>
+		<config-description uri="channel-type:smartthings:Shock_Sensor_shock">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>detected</default>
+				<options>
+					<option value="detected">detected</option>
+					<option value="clear">clear</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>clear</default>
+				<options>
+					<option value="detected">detected</option>
+					<option value="clear">clear</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_detected" type="text">
+				<label>On Change Command (detected)</label>
+				<description>The SmartThings command to call when this channel changes to "detected".</description>
+			</parameter>
+			<parameter name="changeCommand_clear" type="text">
+				<label>On Change Command (clear)</label>
+				<description>The SmartThings command to call when this channel changes to "clear".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_volume">
+		<item-type>Number</item-type>
+		<label>volume</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_volume">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<default>setVolume(NUMBER)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_mute">
+		<item-type>Switch</item-type>
+		<label>mute</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_mute">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>muted</default>
+				<options>
+					<option value="unknown">unknown</option>
+					<option value="muted">muted</option>
+					<option value="unmuted">unmuted</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>unknown</default>
+				<options>
+					<option value="unknown">unknown</option>
+					<option value="muted">muted</option>
+					<option value="unmuted">unmuted</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_muted" type="text">
+				<label>On Change Command (muted)</label>
+				<description>The SmartThings command to call when this channel changes to "muted".</description>
+				<default>mute()</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unmuted" type="text">
+				<label>On Change Command (unmuted)</label>
+				<description>The SmartThings command to call when this channel changes to "unmuted".</description>
+				<default>unmute()</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_pictureMode">
+		<item-type>String</item-type>
+		<label>pictureMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="standard">standard</option>
+				<option value="dynamic">dynamic</option>
+				<option value="unknown">unknown</option>
+				<option value="movie">movie</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_pictureMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_standard" type="text">
+				<label>On Change Command (standard)</label>
+				<description>The SmartThings command to call when this channel changes to "standard".</description>
+				<default>setPictureMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_dynamic" type="text">
+				<label>On Change Command (dynamic)</label>
+				<description>The SmartThings command to call when this channel changes to "dynamic".</description>
+				<default>setPictureMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<default>setPictureMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_movie" type="text">
+				<label>On Change Command (movie)</label>
+				<description>The SmartThings command to call when this channel changes to "movie".</description>
+				<default>setPictureMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_soundMode">
+		<item-type>String</item-type>
+		<label>soundMode</label>
+		<state pattern="%s" readOnly="false">
+			<options>
+				<option value="movie">movie</option>
+				<option value="clear voice">clear voice</option>
+				<option value="standard">standard</option>
+				<option value="music">music</option>
+				<option value="unknown">unknown</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_soundMode">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_movie" type="text">
+				<label>On Change Command (movie)</label>
+				<description>The SmartThings command to call when this channel changes to "movie".</description>
+				<default>setSoundMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_clear_voice" type="text">
+				<label>On Change Command (clear voice)</label>
+				<description>The SmartThings command to call when this channel changes to "clear voice".</description>
+				<default>setSoundMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_standard" type="text">
+				<label>On Change Command (standard)</label>
+				<description>The SmartThings command to call when this channel changes to "standard".</description>
+				<default>setSoundMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_music" type="text">
+				<label>On Change Command (music)</label>
+				<description>The SmartThings command to call when this channel changes to "music".</description>
+				<default>setSoundMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+				<default>setSoundMode(ENUM)</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_switch">
+		<item-type>Switch</item-type>
+		<label>switch</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_switch">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>on</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>off</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>on()</default>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Samsung_TV_messageButton">
+		<item-type>String</item-type>
+		<label>messageButton</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Samsung_TV_messageButton">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="volumeUp()">volumeUp()</option>
+					<option value="volumeDown()">volumeDown()</option>
+					<option value="setVolume(NUMBER)">setVolume(NUMBER)</option>
+					<option value="mute()">mute()</option>
+					<option value="unmute()">unmute()</option>
+					<option value="setPictureMode(ENUM)">setPictureMode(ENUM)</option>
+					<option value="setSoundMode(ENUM)">setSoundMode(ENUM)</option>
+					<option value="on()">on()</option>
+					<option value="off()">off()</option>
+					<option value="showMessage(STRING, STRING, STRING, STRING)">showMessage(STRING, STRING, STRING, STRING)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Power_powerSource">
+		<item-type>String</item-type>
+		<label>powerSource</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="dc">dc</option>
+				<option value="mains">mains</option>
+				<option value="battery">battery</option>
+				<option value="unknown">unknown</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Power_powerSource">
+			<parameter name="changeCommand_dc" type="text">
+				<label>On Change Command (dc)</label>
+				<description>The SmartThings command to call when this channel changes to "dc".</description>
+			</parameter>
+			<parameter name="changeCommand_mains" type="text">
+				<label>On Change Command (mains)</label>
+				<description>The SmartThings command to call when this channel changes to "mains".</description>
+			</parameter>
+			<parameter name="changeCommand_battery" type="text">
+				<label>On Change Command (battery)</label>
+				<description>The SmartThings command to call when this channel changes to "battery".</description>
+			</parameter>
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Power_Source_powerSource">
+		<item-type>String</item-type>
+		<label>powerSource</label>
+		<state pattern="%s" readOnly="true">
+			<options>
+				<option value="unknown">unknown</option>
+				<option value="dc">dc</option>
+				<option value="battery">battery</option>
+				<option value="mains">mains</option>
+			</options>
+		</state>
+		<config-description uri="channel-type:smartthings:Power_Source_powerSource">
+			<parameter name="changeCommand_unknown" type="text">
+				<label>On Change Command (unknown)</label>
+				<description>The SmartThings command to call when this channel changes to "unknown".</description>
+			</parameter>
+			<parameter name="changeCommand_dc" type="text">
+				<label>On Change Command (dc)</label>
+				<description>The SmartThings command to call when this channel changes to "dc".</description>
+			</parameter>
+			<parameter name="changeCommand_battery" type="text">
+				<label>On Change Command (battery)</label>
+				<description>The SmartThings command to call when this channel changes to "battery".</description>
+			</parameter>
+			<parameter name="changeCommand_mains" type="text">
+				<label>On Change Command (mains)</label>
+				<description>The SmartThings command to call when this channel changes to "mains".</description>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Light_switch">
+		<item-type>Switch</item-type>
+		<label>switch</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Light_switch">
+			<parameter name="onOpenValue" type="text" required="true">
+				<label>On/Open Value</label>
+				<description>The SmartThings value corresponding to this switch being "On" or a contact being "Open".</description>
+				<default>on</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="offClosedValue" type="text" required="true">
+				<label>Off/Closed Value</label>
+				<description>The SmartThings value corresponding to this switch being "Off" or a contact being "Closed".</description>
+				<default>off</default>
+				<options>
+					<option value="off">off</option>
+					<option value="on">on</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="off()">off()</option>
+					<option value="on()">on()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_off" type="text">
+				<label>On Change Command (off)</label>
+				<description>The SmartThings command to call when this channel changes to "off".</description>
+				<default>off()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="on()">on()</option>
+				</options>
+			</parameter>
+			<parameter name="changeCommand_on" type="text">
+				<label>On Change Command (on)</label>
+				<description>The SmartThings command to call when this channel changes to "on".</description>
+				<default>on()</default>
+				<options>
+					<option value="off()">off()</option>
+					<option value="on()">on()</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
+	<channel-type id="Buffered_Video_Capture_clip">
+		<item-type>String</item-type>
+		<label>clip</label>
+		<state pattern="%s" readOnly="false"></state>
+		<config-description uri="channel-type:smartthings:Buffered_Video_Capture_clip">
+			<parameter name="changeCommand" type="text">
+				<label>On Change Command</label>
+				<description>The SmartThings command to call when this channel changes.</description>
+				<options>
+					<option value="capture(DATE, DATE, DATE)">capture(DATE, DATE, DATE)</option>
+				</options>
+			</parameter>
+		</config-description>
+	</channel-type>
 </thing:thing-descriptions>
- -->

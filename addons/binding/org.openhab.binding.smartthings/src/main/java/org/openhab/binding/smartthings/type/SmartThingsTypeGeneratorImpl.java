@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,8 +37,6 @@ import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.smartthings.client.model.Attribute;
 import org.openhab.binding.smartthings.client.model.Capability;
 import org.openhab.binding.smartthings.client.model.Device;
-import org.openhab.binding.smartthings.type.transform.CapabilityTransformer;
-import org.openhab.binding.smartthings.type.transform.ChannelTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,39 +117,32 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             // if the device is an actuator we need to map it some control channel
             List<ChannelDefinition> channelDefinitions = new ArrayList<ChannelDefinition>();
             for (Capability capability : device.getCapabilities()) {
-                CapabilityTransformer transformer = transformProvider.getTransformer(capability);
-                Collection<ChannelTransformer> channelTransformers = transformer.getChannelTransformers();
-                for (ChannelTransformer channelTransform : channelTransformers) {
-                    ChannelType channelType = channelTransform.getChannelType();
-                    ChannelType registeredType = channelTypeProvider.getChannelType(channelType.getUID(),
-                            Locale.getDefault());
-                    if (registeredType == null) {
-                        channelTypeProvider.addChannelType(channelType);
-                        registeredType = channelType;
-                    }
-                    ChannelDefinition channelDef = new ChannelDefinition(
-                            UidUtils.sanitizeStringId(registeredType.getUID().getId()), registeredType.getUID(), null,
-                            registeredType.getLabel(), registeredType.getDescription());
-                    channelDefinitions.add(channelDef);
-                }
-
-                // if (capability.getAttributes() != null) {
-                // for (Attribute attribute : capability.getAttributes()) {
-                // ChannelTypeUID channelTypeUID = UidUtils.generateChannelTypeUID(capability.getName(),
-                // attribute.getName());
-                // ChannelType channelType = channelTypeProvider.getChannelType(channelTypeUID,
+                // CapabilityTransformer transformer = transformProvider.getTransformer(capability);
+                // Collection<ChannelTransformer> channelTransformers = transformer.getChannelTransformers();
+                // for (ChannelTransformer channelTransform : channelTransformers) {
+                // ChannelType channelType = channelTransform.getChannelType();
+                // ChannelType registeredType = channelTypeProvider.getChannelType(channelType.getUID(),
                 // Locale.getDefault());
-                // if (channelType == null) {
-                // channelType = createChannelType(channelTypeUID, capability, attribute);
+                // if (registeredType == null) {
                 // channelTypeProvider.addChannelType(channelType);
+                // registeredType = channelType;
                 // }
-                //
                 // ChannelDefinition channelDef = new ChannelDefinition(
-                // UidUtils.sanitizeStringId(capability.getName() + "_" + attribute.getName()),
-                // channelType.getUID(), null, channelType.getLabel(), channelType.getDescription());
+                // UidUtils.sanitizeStringId(registeredType.getUID().getId()), registeredType.getUID(), null,
+                // registeredType.getLabel(), registeredType.getDescription());
                 // channelDefinitions.add(channelDef);
                 // }
-                // }
+                if (capability.getAttributes() != null) {
+                    for (Attribute attribute : capability.getAttributes()) {
+                        ChannelTypeUID channelTypeId = UidUtils.generateChannelTypeUID(capability.getName(),
+                                attribute.getName());
+                        ChannelDefinition channelDef = new ChannelDefinition(
+                                UidUtils.sanitizeStringId(channelTypeId.getId()), channelTypeId, null,
+                                attribute.getName(), null);
+                        channelDefinitions.add(channelDef);
+                    }
+                }
+
             }
 
             // generate group
@@ -170,7 +160,6 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
             tt = createThingType(device, channelDefinitions, groupTypes);
             thingTypeProvider.addThingType(tt);
         }
-        addFirmware(device);
     }
 
     // private ChannelType createChannelType(String channelTypeName, String itemType){
@@ -183,38 +172,6 @@ public class SmartThingsTypeGeneratorImpl implements SmartThingsTypeGenerator {
     // }
     //
     // }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void validateFirmwares() {
-        for (String deviceType : firmwaresByType.keySet()) {
-            Set<String> firmwares = firmwaresByType.get(deviceType);
-            if (firmwares.size() > 1) {
-                logger.info(
-                        "Multiple firmware versions for device type '{}' found ({}). "
-                                + "Make sure, all devices of the same type have the same firmware version, "
-                                + "otherwise you MAY have channel and/or datapoint errors in the logfile",
-                        deviceType, StringUtils.join(firmwares, ", "));
-            }
-        }
-    }
-
-    /**
-     * Adds the firmware version for validation.
-     */
-    private void addFirmware(Device device) {
-        // if (!StringUtils.equals(device.getFirmware(), "?") && !DEVICE_TYPE_VIRTUAL.equals(device.getType())
-        // && !DEVICE_TYPE_VIRTUAL_WIRED.equals(device.getType())) {
-        // Set<String> firmwares = firmwaresByType.get(device.getType());
-        // if (firmwares == null) {
-        // firmwares = new HashSet<String>();
-        // firmwaresByType.put(device.getType(), firmwares);
-        // }
-        // firmwares.add(device.getFirmware());
-        // }
-    }
 
     /**
      * Creates the ThingType for the given device.
